@@ -44,6 +44,9 @@ jobs:
         terraform version
         
     - name: Terraform Plan
+      env:
+        TF_VAR_existing_instance_id: ${{ secrets.EC2_INSTANCE_ID }}
+        TF_VAR_existing_security_group_id: ${{ secrets.EXISTING_SECURITY_GROUP_ID }}
       run: |
         echo "Running terraform plan..."
         terraform plan -input=false -out=tfplan || {
@@ -54,6 +57,9 @@ jobs:
     ## Added these debug steps      
 
     - name: Terraform Plan
+      env:
+        TF_VAR_existing_instance_id: ${{ secrets.EC2_INSTANCE_ID }}
+        TF_VAR_existing_security_group_id: ${{ secrets.EXISTING_SECURITY_GROUP_ID }}
       run: terraform plan -out=tfplan
       
     - name: Terraform Apply
