@@ -33,6 +33,9 @@ output "api_endpoint" {
   value = aws_instance.api_server.public_dns
 }
 
+output "security_group_id" {
+  value = var.existing_security_group_id
+}
 
 #   # Configure load balancer and auto-scaling group for API server
 #   resource "aws_lb" "api_lb" {

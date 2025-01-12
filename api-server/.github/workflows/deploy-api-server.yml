@@ -1,0 +1,95 @@
+name: Deploy API Server to AWS
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'api-server/api/**'
+      - 'api-server/scripts/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN  }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-duration-seconds: 900
+
+      - name: Update Security Group
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          echo "Runner's public IP: $RUNNER_IP"
+          
+          SG_ID=$(terraform -chdir=./api-server/terraform output -raw security_group_id)
+          echo "Security group ID: $SG_ID"
+          
+          aws ec2 authorize-security-group-ingress \
+            --group-id $SG_ID \
+            --protocol tcp \
+            --port 22 \
+            --cidr $RUNNER_IP/32
+          echo "Successfully added temporary rule to GitHub runner"
+
+      - name: Setup SSH and Test Connection
+        run: |
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/known_hosts
+          echo "Created SSH directory and files"
+
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key.pem
+          chmod 600 ~/.ssh/ec2_key.pem
+          echo "Added EC2 ssh key to SSH directory"
+
+          EC2_PUBLIC_DNS=$(terraform -chdir=./api-server/terraform output -raw api_endpoint)
+          echo "EC2 Public DNS: $EC2_PUBLIC_DNS"
+
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+          ssh -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@$EC2_PUBLIC_DNS 'echo "SSH connection test successful"'
+
+      - name: Deploy to EC2
+        env:
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+        run: |
+          EC2_PUBLIC_DNS=$(terraform -chdir=./api-server/terraform output -raw api_endpoint)
+          echo "EC2 Public DNS: $EC2_PUBLIC_DNS"
+
+          echo "Starting deployment..."
+          ssh -v -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@$EC2_PUBLIC_DNS 'bash -s' < api-server/scripts/deploy.sh
+
+      - name: Cleanup Security Group
+        if: always()
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          SG_ID=$(terraform -chdir=./api-server/terraform output -raw security_group_id)
+
+          # Check if the rule exists before trying to remove it
+          RULE_EXISTS=$(aws ec2 describe-security-groups \
+            --group-ids $SG_ID \
+            --filters "Name=ip-permission.cidr,Values=$RUNNER_IP/32" \
+            --filters "Name=ip-permission.from-port,Values=22" \
+            --query 'SecurityGroups[*].IpPermissions[?FromPort==`22`]' \
+            --output text)
+          
+          if [ ! -z "$RULE_EXISTS" ]; then
+            echo "Removing temporary security group rule..."
+            aws ec2 revoke-security-group-ingress \
+              --group-id $SG_ID \
+              --protocol tcp \
+              --port 22 \
+              --cidr $RUNNER_IP/32
+          else
+            echo "Security group rule not found, skipping removal"
+          fi
