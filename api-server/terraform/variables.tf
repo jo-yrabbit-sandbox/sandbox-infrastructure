@@ -1,8 +1,12 @@
 # infrastructure/api-server/terraform/variables.tf
-variable "aws_region" {
-  description = "AWS region"
+variable "vpc_id" {
+  description = "VPC ID from shared module"
   type        = string
-  default     = "us-east-2"
+}
+
+variable "public_subnet_ids" {
+  description = "Public subnet IDs from shared module"
+  type        = list(string)
 }
 
 variable "instance_type" {
@@ -17,12 +21,8 @@ variable "existing_security_group_id" {
   default     = "sg-00dabfbfb3954248d"
 }
 
-variable "vpc_id" {
-  description = "VPC ID from shared module"
+variable "aws_region" {
+  description = "AWS region"
   type        = string
-}
-
-variable "public_subnet_ids" {
-  description = "Public subnet IDs from shared module"
-  type        = list(string)
+  default     = "us-east-2"
 }

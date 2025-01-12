@@ -32,15 +32,15 @@ output "api_endpoint" {
   value       = aws_instance.api_server.public_dns
 }
 
-output "security_group_id" {
-  description = "The ID of the security group attached to the API server"
-  value       = data.aws_security_group.existing.id
-}
+# output "security_group_id" {
+#   description = "The ID of the security group attached to the API server"
+#   value       = data.aws_security_group.existing.id
+# }
 
-output "instance_id" {
-  description = "The instance ID of the API server"
-  value       = aws_instance.api_server.id
-}
+# output "instance_id" {
+#   description = "The instance ID of the API server"
+#   value       = aws_instance.api_server.id
+# }
 
 
 #   # Configure load balancer and auto-scaling group for API server
