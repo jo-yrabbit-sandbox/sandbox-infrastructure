@@ -84,7 +84,7 @@ jobs:
         env:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
         run: |
-          ssh -v -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@${{ steps.terraform.outputs.ec2_dns }} 'bash -s' < api-server/scripts/deploy.sh
+          ssh -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@${{ steps.terraform.outputs.ec2_dns }} 'bash -s' < api-server/scripts/deploy.sh
 
       - name: Cleanup Security Group
         if: always()

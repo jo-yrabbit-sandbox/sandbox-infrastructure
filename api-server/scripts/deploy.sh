@@ -4,6 +4,10 @@ trap 'echo "Error on line $LINENO"' ERR  # Print line number where any error occ
 
 echo "Starting deployment..."
 
+# Install required packages
+sudo apt-get update
+sudo apt-get install -y python3-venv
+
 # Navigate to app directory (create if doesn't exist)
 APP_DIR="/home/ubuntu/api-server"
 mkdir -p $APP_DIR
