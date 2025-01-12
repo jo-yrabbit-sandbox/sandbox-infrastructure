@@ -36,7 +36,26 @@ pip install -r requirements.txt
 # Update Redis host in configuration
 sed -i "s/your-elasticache-endpoint.region.cache.amazonaws.com/$REDIS_HOST/g" api/server.py
 
-# Restart the service
+# Create systemd service file
+sudo tee /etc/systemd/system/api-server.service << EOF
+[Unit]
+Description=API Server
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=$APP_DIR/current
+Environment="PATH=$APP_DIR/current/venv/bin"
+ExecStart=$APP_DIR/current/venv/bin/python api/server.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd, enable and restart service
+sudo systemctl daemon-reload
+sudo systemctl enable api-server
 sudo systemctl restart api-server
 
 echo "Deployment completed successfully!"
