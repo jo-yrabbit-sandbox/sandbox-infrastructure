@@ -37,16 +37,48 @@ jobs:
             -backend-config="dynamodb_table=terraform-state-locks" \
             -backend-config="encrypt=true"
 
+      - name: Debug Terraform Outputs
+        run: |
+          echo "Raw terraform output:"
+          terraform output
+          
+          echo "\nJSON terraform output:"
+          terraform output -json || echo "JSON output failed"
+          
+          echo "\nTrying individual outputs:"
+          echo "Security Group ID:"
+          terraform output api_server_security_group_id || echo "Failed to get security group ID"
+          echo "\nAPI Endpoint:"
+          terraform output api_server_endpoint || echo "Failed to get API endpoint"
+
       - name: Get Terraform Outputs
         id: terraform
         run: |
-          # Get security group ID
-          SG_ID=$(terraform output -json | jq -r '.api_server_security_group_id.value')
-          echo "security_group_id=${SG_ID}" >> $GITHUB_OUTPUT
+          # Store raw outputs without parsing
+          SG_ID=$(terraform output api_server_security_group_id)
+          EC2_DNS=$(terraform output api_server_endpoint)
           
-          # Get EC2 DNS
-          EC2_DNS=$(terraform output -json | jq -r '.api_server_endpoint.value')
+          # Remove any quotes if present
+          SG_ID=$(echo $SG_ID | tr -d '"')
+          EC2_DNS=$(echo $EC2_DNS | tr -d '"')
+          
+          echo "security_group_id=${SG_ID}" >> $GITHUB_OUTPUT
           echo "ec2_dns=${EC2_DNS}" >> $GITHUB_OUTPUT
+          
+          echo "Captured values:"
+          echo "SG_ID: $SG_ID"
+          echo "EC2_DNS: $EC2_DNS"
+
+      # - name: Get Terraform Outputs
+      #   id: terraform
+      #   run: |
+      #     # Get security group ID
+      #     SG_ID=$(terraform output -json | jq -r '.api_server_security_group_id.value')
+      #     echo "security_group_id=${SG_ID}" >> $GITHUB_OUTPUT
+          
+      #     # Get EC2 DNS
+      #     EC2_DNS=$(terraform output -json | jq -r '.api_server_endpoint.value')
+      #     echo "ec2_dns=${EC2_DNS}" >> $GITHUB_OUTPUT
 
       - name: Update Security Group
         run: |
