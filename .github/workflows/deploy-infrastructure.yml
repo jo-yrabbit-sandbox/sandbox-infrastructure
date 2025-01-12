@@ -32,7 +32,27 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
-      
+
+    ## Added these debug steps      
+    - name: Debug Terraform State
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "\nDirectory contents:"
+        ls -la
+        echo "\nTerraform version:"
+        terraform version
+        
+    - name: Terraform Plan
+      run: |
+        echo "Running terraform plan..."
+        terraform plan -input=false -out=tfplan || {
+          echo "Terraform plan failed. State:"
+          terraform show
+          exit 1
+        }
+    ## Added these debug steps      
+
     - name: Terraform Plan
       run: terraform plan -out=tfplan
       

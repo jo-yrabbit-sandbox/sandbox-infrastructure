@@ -30,16 +30,18 @@ jobs:
         run: terraform init
 
       # Add debug step
-      - name: Debug Terraform Outputs
+      - name: Debug Terraform Setup
         run: |
-          echo "All Terraform outputs:"
-          terraform output
-          
-          echo "\nTrying to get specific outputs:"
-          echo "Security Group ID:"
-          terraform output api_server_security_group_id || echo "Failed to get security group ID"
-          echo "\nAPI Endpoint:"
-          terraform output api_server_endpoint || echo "Failed to get API endpoint"
+          echo "Current directory:"
+          pwd
+          echo "\nDirectory contents:"
+          ls -la
+          echo "\nTerraform version:"
+          terraform version
+          echo "\nTrying to init:"
+          terraform init
+          echo "\nTrying to show state:"
+          terraform show
 
       - name: Update Security Group
         run: |
