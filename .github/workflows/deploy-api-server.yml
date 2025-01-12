@@ -3,8 +3,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'api-server/api/**'
-      - 'api-server/scripts/**'
+      - 'api-server/**'
   workflow_dispatch:
 
 jobs:
@@ -23,6 +22,14 @@ jobs:
           role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN  }}
           aws-region: ${{ secrets.AWS_REGION }}
           role-duration-seconds: 900
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
 
       - name: Update Security Group
         run: |
