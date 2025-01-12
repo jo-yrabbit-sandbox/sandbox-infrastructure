@@ -28,7 +28,6 @@ jobs:
 
       - name: Terraform Init
         run: |
-          cd terraform
           terraform init
 
       - name: Update Security Group
