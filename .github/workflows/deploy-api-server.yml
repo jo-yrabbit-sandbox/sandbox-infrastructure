@@ -27,15 +27,28 @@ jobs:
         uses: hashicorp/setup-terraform@v1
 
       - name: Terraform Init
+        run: terraform init
+
+      # Add debug step
+      - name: Debug Terraform Outputs
         run: |
-          terraform init
+          echo "All Terraform outputs:"
+          terraform output
+          
+          echo "\nTrying to get specific outputs:"
+          echo "Security Group ID:"
+          terraform output api_server_security_group_id || echo "Failed to get security group ID"
+          echo "\nAPI Endpoint:"
+          terraform output api_server_endpoint || echo "Failed to get API endpoint"
 
       - name: Update Security Group
         run: |
           RUNNER_IP=$(curl -s https://api.ipify.org)
           echo "Runner's public IP: $RUNNER_IP"
           
-          SG_ID=$(terraform output -json | jq -r '.api_server_security_group_id.value')
+          # TODO: Which to use?
+          # SG_ID=$(terraform output -json | jq -r '.api_server_security_group_id.value')
+          SG_ID=$(terraform output -raw api_server_security_group_id)
           echo "Security group ID: $SG_ID"
           
           aws ec2 authorize-security-group-ingress \
@@ -57,7 +70,9 @@ jobs:
           chmod 600 ~/.ssh/ec2_key.pem
           echo "Added EC2 ssh key to SSH directory"
 
-          EC2_PUBLIC_DNS=$(terraform -chdir=./api-server/terraform output -raw api_endpoint)
+          #TODO: Which to use?
+          # EC2_PUBLIC_DNS=$(terraform -chdir=./api-server/terraform output -raw api_endpoint)
+          EC2_PUBLIC_DNS=$(terraform output -raw api_server_endpoint)
           echo "EC2 Public DNS: $EC2_PUBLIC_DNS"
 
           echo "StrictHostKeyChecking no" >> ~/.ssh/config
@@ -69,7 +84,9 @@ jobs:
         env:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
         run: |
-          EC2_PUBLIC_DNS=$(terraform output -json | jq -r '.api_server_endpoint.value')
+          #TODO: Which to use?
+          EC2_PUBLIC_DNS=$(terraform output -raw api_server_endpoint)
+          # EC2_PUBLIC_DNS=$(terraform output -json | jq -r '.api_server_endpoint.value')
           echo "EC2 Public DNS: $EC2_PUBLIC_DNS"
 
           echo "Starting deployment..."
@@ -79,7 +96,9 @@ jobs:
         if: always()
         run: |
           RUNNER_IP=$(curl -s https://api.ipify.org)
-          SG_ID=$(terraform -chdir=./api-server/terraform output -raw security_group_id)
+          #TODO: Which to use?
+          SG_ID=$(terraform output -raw api_server_security_group_id)          
+          # SG_ID=$(terraform -chdir=./api-server/terraform output -raw security_group_id)
 
           # Check if the rule exists before trying to remove it
           RULE_EXISTS=$(aws ec2 describe-security-groups \
