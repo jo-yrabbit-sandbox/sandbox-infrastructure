@@ -41,7 +41,7 @@ jobs:
       - name: Get Terraform Outputs
         id: terraform
         run: |
-          # Now these will return clean outputs
+          # Remember to set terraform_wrapper = false
           SG_ID=$(terraform output api_server_security_group_id)
           EC2_DNS=$(terraform output api_server_endpoint)
           
