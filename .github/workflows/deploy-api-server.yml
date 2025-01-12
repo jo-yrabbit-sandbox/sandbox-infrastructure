@@ -40,33 +40,39 @@ jobs:
       - name: Get Terraform Outputs
         id: terraform
         run: |
-          # Capture outputs cleanly by storing the command output in variables
-          echo "Getting security group ID..."
-          SG_ID=$(terraform output api_server_security_group_id)
-          echo "Got security group ID: $SG_ID"
+          # Create temporary directory
+          TEMP_DIR=$(mktemp -d)
           
-          echo "Getting EC2 DNS..."
-          EC2_DNS=$(terraform output api_server_endpoint)
-          echo "Got EC2 DNS: $EC2_DNS"
+          # Get outputs to temporary files
+          terraform output api_server_security_group_id > "$TEMP_DIR/sg_id"
+          terraform output api_server_endpoint > "$TEMP_DIR/ec2_dns"
           
-          # Clean the outputs (remove quotes and newlines)
-          SG_ID=$(echo "$SG_ID" | tr -d '"' | tr -d '\n')
-          EC2_DNS=$(echo "$EC2_DNS" | tr -d '"' | tr -d '\n')
+          # Read and clean the outputs
+          SG_ID=$(cat "$TEMP_DIR/sg_id" | tr -d '"' | tr -d '\n')
+          EC2_DNS=$(cat "$TEMP_DIR/ec2_dns" | tr -d '"' | tr -d '\n')
           
-          # Store in GitHub outputs
-          echo "security_group_id=$SG_ID" >> $GITHUB_OUTPUT
-          echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
+          # Clean up temp files
+          rm -rf "$TEMP_DIR"
           
-          # Verify the values
-          echo "Final values:"
-          echo "Security Group ID: $SG_ID"
-          echo "EC2 DNS: $EC2_DNS"
+          # Store in GitHub outputs using a delimiter
+          echo "security_group_id<<EOF" >> $GITHUB_OUTPUT
+          echo "$SG_ID" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "ec2_dns<<EOF" >> $GITHUB_OUTPUT
+          echo "$EC2_DNS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Print for verification
+          echo "Captured values:"
+          echo "SG_ID: $SG_ID"
+          echo "EC2_DNS: $EC2_DNS"
 
-      - name: Verify Outputs # Add this step to verify the outputs are accessible
+      - name: Verify Outputs
         run: |
-          echo "Verifying captured outputs:"
           echo "Security Group ID: ${{ steps.terraform.outputs.security_group_id }}"
           echo "EC2 DNS: ${{ steps.terraform.outputs.ec2_dns }}"
+
       # - name: Get Terraform Outputs
       #   id: terraform
       #   run: |
