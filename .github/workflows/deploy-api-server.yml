@@ -25,6 +25,8 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: "1.0.0"
 
       - name: Terraform Init
         run: |
@@ -35,32 +37,25 @@ jobs:
             -backend-config="dynamodb_table=terraform-state-locks" \
             -backend-config="encrypt=true"
 
-      # Add debug step
-      - name: Debug Terraform Setup
+      - name: Get Terraform Outputs
+        id: terraform
         run: |
-          echo "Current directory:"
-          pwd
-          echo "\nDirectory contents:"
-          ls -la
-          echo "\nTerraform version:"
-          terraform version
-          echo "\nTrying to init:"
-          terraform init
-          echo "\nTrying to show state:"
-          terraform show
+          # Get security group ID
+          SG_ID=$(terraform output -json | jq -r '.api_server_security_group_id.value')
+          echo "security_group_id=${SG_ID}" >> $GITHUB_OUTPUT
+          
+          # Get EC2 DNS
+          EC2_DNS=$(terraform output -json | jq -r '.api_server_endpoint.value')
+          echo "ec2_dns=${EC2_DNS}" >> $GITHUB_OUTPUT
 
       - name: Update Security Group
         run: |
           RUNNER_IP=$(curl -s https://api.ipify.org)
           echo "Runner's public IP: $RUNNER_IP"
-          
-          # TODO: Which to use?
-          # SG_ID=$(terraform output -json | jq -r '.api_server_security_group_id.value')
-          SG_ID=$(terraform output -raw api_server_security_group_id)
-          echo "Security group ID: $SG_ID"
-          
+          echo "Security Group ID: ${{ steps.terraform.outputs.security_group_id }}"          
+         
           aws ec2 authorize-security-group-ingress \
-            --group-id $SG_ID \
+            --group-id ${{ steps.terraform.outputs.security_group_id }} \
             --protocol tcp \
             --port 22 \
             --cidr $RUNNER_IP/32
@@ -78,11 +73,7 @@ jobs:
           chmod 600 ~/.ssh/ec2_key.pem
           echo "Added EC2 ssh key to SSH directory"
 
-          #TODO: Which to use?
-          # EC2_PUBLIC_DNS=$(terraform -chdir=./api-server/terraform output -raw api_endpoint)
-          EC2_PUBLIC_DNS=$(terraform output -raw api_server_endpoint)
-          echo "EC2 Public DNS: $EC2_PUBLIC_DNS"
-
+          echo "EC2 DNS: ${{ steps.terraform.outputs.ec2_dns }}"
           echo "StrictHostKeyChecking no" >> ~/.ssh/config
           chmod 600 ~/.ssh/config
 
@@ -92,25 +83,16 @@ jobs:
         env:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
         run: |
-          #TODO: Which to use?
-          EC2_PUBLIC_DNS=$(terraform output -raw api_server_endpoint)
-          # EC2_PUBLIC_DNS=$(terraform output -json | jq -r '.api_server_endpoint.value')
-          echo "EC2 Public DNS: $EC2_PUBLIC_DNS"
-
-          echo "Starting deployment..."
-          ssh -v -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@$EC2_PUBLIC_DNS 'bash -s' < api-server/scripts/deploy.sh
+          ssh -v -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@${{ steps.terraform.outputs.ec2_dns }} 'bash -s' < api-server/scripts/deploy.sh
 
       - name: Cleanup Security Group
         if: always()
         run: |
           RUNNER_IP=$(curl -s https://api.ipify.org)
-          #TODO: Which to use?
-          SG_ID=$(terraform output -raw api_server_security_group_id)          
-          # SG_ID=$(terraform -chdir=./api-server/terraform output -raw security_group_id)
 
           # Check if the rule exists before trying to remove it
           RULE_EXISTS=$(aws ec2 describe-security-groups \
-            --group-ids $SG_ID \
+            --group-ids ${{ steps.terraform.outputs.security_group_id }} \
             --filters "Name=ip-permission.cidr,Values=$RUNNER_IP/32" \
             --filters "Name=ip-permission.from-port,Values=22" \
             --query 'SecurityGroups[*].IpPermissions[?FromPort==`22`]' \
@@ -119,7 +101,7 @@ jobs:
           if [ ! -z "$RULE_EXISTS" ]; then
             echo "Removing temporary security group rule..."
             aws ec2 revoke-security-group-ingress \
-              --group-id $SG_ID \
+              --group-id ${{ steps.terraform.outputs.security_group_id }} \
               --protocol tcp \
               --port 22 \
               --cidr $RUNNER_IP/32
