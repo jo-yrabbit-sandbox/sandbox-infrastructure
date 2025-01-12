@@ -35,7 +35,7 @@ jobs:
         terraform init \
           -backend-config="bucket=jolly-sandbox-terraform-state" \
           -backend-config="key=infrastructure/terraform.tfstate" \
-          -backend-config="region=us-east-1" \
+          -backend-config="region=us-east-2" \
           -backend-config="dynamodb_table=terraform-state-locks" \
           -backend-config="encrypt=true"
 
