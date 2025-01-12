@@ -37,38 +37,36 @@ jobs:
             -backend-config="dynamodb_table=terraform-state-locks" \
             -backend-config="encrypt=true"
 
-      - name: Debug Terraform Outputs
-        run: |
-          echo "Raw terraform output:"
-          terraform output
-          
-          echo "\nJSON terraform output:"
-          terraform output -json || echo "JSON output failed"
-          
-          echo "\nTrying individual outputs:"
-          echo "Security Group ID:"
-          terraform output api_server_security_group_id || echo "Failed to get security group ID"
-          echo "\nAPI Endpoint:"
-          terraform output api_server_endpoint || echo "Failed to get API endpoint"
-
       - name: Get Terraform Outputs
         id: terraform
         run: |
-          # Store raw outputs without parsing
+          # Capture outputs cleanly by storing the command output in variables
+          echo "Getting security group ID..."
           SG_ID=$(terraform output api_server_security_group_id)
+          echo "Got security group ID: $SG_ID"
+          
+          echo "Getting EC2 DNS..."
           EC2_DNS=$(terraform output api_server_endpoint)
+          echo "Got EC2 DNS: $EC2_DNS"
           
-          # Remove any quotes if present
-          SG_ID=$(echo $SG_ID | tr -d '"')
-          EC2_DNS=$(echo $EC2_DNS | tr -d '"')
+          # Clean the outputs (remove quotes and newlines)
+          SG_ID=$(echo "$SG_ID" | tr -d '"' | tr -d '\n')
+          EC2_DNS=$(echo "$EC2_DNS" | tr -d '"' | tr -d '\n')
           
-          echo "security_group_id=${SG_ID}" >> $GITHUB_OUTPUT
-          echo "ec2_dns=${EC2_DNS}" >> $GITHUB_OUTPUT
+          # Store in GitHub outputs
+          echo "security_group_id=$SG_ID" >> $GITHUB_OUTPUT
+          echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
           
-          echo "Captured values:"
-          echo "SG_ID: $SG_ID"
-          echo "EC2_DNS: $EC2_DNS"
+          # Verify the values
+          echo "Final values:"
+          echo "Security Group ID: $SG_ID"
+          echo "EC2 DNS: $EC2_DNS"
 
+      - name: Verify Outputs # Add this step to verify the outputs are accessible
+        run: |
+          echo "Verifying captured outputs:"
+          echo "Security Group ID: ${{ steps.terraform.outputs.security_group_id }}"
+          echo "EC2 DNS: ${{ steps.terraform.outputs.ec2_dns }}"
       # - name: Get Terraform Outputs
       #   id: terraform
       #   run: |
