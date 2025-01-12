@@ -27,7 +27,13 @@ jobs:
         uses: hashicorp/setup-terraform@v1
 
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=jolly-sandbox-terraform-state" \
+            -backend-config="key=infrastructure/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=terraform-state-locks" \
+            -backend-config="encrypt=true"
 
       # Add debug step
       - name: Debug Terraform Setup
