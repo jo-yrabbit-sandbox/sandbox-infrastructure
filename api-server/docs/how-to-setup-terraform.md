@@ -125,18 +125,20 @@ terraform plan
         {
             "Effect": "Allow",
             "Action": [
-                "s3:ListBucket"
             ],
-            "Resource": "arn:aws:s3:::your-company-terraform-state"
         },
         {
             "Effect": "Allow",
             "Action": [
+                "s3:ListBucket",
                 "s3:GetObject",
                 "s3:PutObject",
                 "s3:DeleteObject"
             ],
-            "Resource": "arn:aws:s3:::your-company-terraform-state/*"
+            "Resource": [
+                "arn:aws:s3:::your-company-terraform-state",
+                "arn:aws:s3:::your-company-terraform-state/*"
+            ]
         },
         {
             "Effect": "Allow",
@@ -147,6 +149,22 @@ terraform plan
                 "dynamodb:DeleteItem"
             ],
             "Resource": "arn:aws:dynamodb:*:*:table/terraform-state-locks"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeInstances",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeKeyPairs",
+                "ec2:CreateTags",
+                "ec2:RunInstances",
+                "ec2:StopInstances",
+                "ec2:StartInstances",
+                "ec2:ModifyInstanceAttribute"
+            ],
+            "Resource": "*"
         }
     ]
 }
