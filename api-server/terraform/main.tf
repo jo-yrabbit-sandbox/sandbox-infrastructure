@@ -1,4 +1,15 @@
 # infrastructure/api-server/terraform/main.tf
+# Get latest Amazon Linux 2 AMI
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
 # Reference existing security group
 data "aws_security_group" "existing" {
   id = var.existing_security_group_id
@@ -30,12 +41,20 @@ data "aws_ami" "amazon_linux_2" {
 }
 
 output "api_endpoint" {
-  value = aws_instance.api_server.public_dns
+  description = "The public DNS of the API server"
+  value       = aws_instance.api_server.public_dns
 }
 
 output "security_group_id" {
-  value = var.existing_security_group_id
+  description = "The ID of the security group attached to the API server"
+  value       = data.aws_security_group.existing.id
 }
+
+output "instance_id" {
+  description = "The instance ID of the API server"
+  value       = aws_instance.api_server.id
+}
+
 
 #   # Configure load balancer and auto-scaling group for API server
 #   resource "aws_lb" "api_lb" {
