@@ -1,15 +1,4 @@
 # infrastructure/api-server/terraform/main.tf
-# Get latest Amazon Linux 2 AMI
-data "aws_ami" "amazon_linux_2" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-}
-
 # Reference existing security group
 data "aws_security_group" "existing" {
   id = var.existing_security_group_id
@@ -17,13 +6,11 @@ data "aws_security_group" "existing" {
 
 # Your existing API server configuration, modified to use shared resources
 resource "aws_instance" "api_server" {
-  # Keep your existing EC2 configuration
   ami           = data.aws_ami.amazon_linux_2.id
   instance_type = var.instance_type
-  subnet_id       = var.public_subnet_ids[0] # Using first subnet by default
-
+  subnet_id     = var.public_subnet_ids[0]
   vpc_security_group_ids = [data.aws_security_group.existing.id]
-
+  
   tags = {
     Name = "api-server"
   }
