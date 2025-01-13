@@ -85,7 +85,8 @@ jobs:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
           GITHUB_BRANCH: ${{ github.ref_name }}
         run: |
-          ssh -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@${{ steps.terraform.outputs.ec2_dns }} 'bash -s' < api-server/scripts/deploy.sh "$GITHUB_BRANCH"
+          ssh -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@${{ steps.terraform.outputs.ec2_dns }} \
+            "REDIS_HOST=$REDIS_HOST bash -s" < api/scripts/deploy.sh "$GITHUB_BRANCH"
 
       - name: Cleanup Security Group
         if: always()
