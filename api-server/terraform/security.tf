@@ -33,7 +33,7 @@ resource "aws_security_group" "api" {
     from_port = 6379
     to_port   = 6379
     protocol  = "tcp"
-    cidr_blocks = var.private_subnet_cidrs
+    security_groups = [aws_security_group.redis.id]
   }
 
   # Outbound internet access
