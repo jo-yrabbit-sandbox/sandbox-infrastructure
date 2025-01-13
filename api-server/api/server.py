@@ -99,7 +99,8 @@ def debug_redis():
     redis_host = os.getenv('REDIS_HOST', 'localhost')
     return {
         'redis_host': redis_host,
-        'environment': dict(os.environ)
+        'environment': dict(os.environ),
+        'redis_client': str(redis_handler.redis_client)
     }
 
 
