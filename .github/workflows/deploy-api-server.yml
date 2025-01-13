@@ -32,12 +32,11 @@ jobs:
 
       - name: Debug Directory
         run: |
-          echo "Current directory:"
-          pwd
-          echo "\nContents of shared/terraform:"
+          echo "Contents of shared/terraform:"
           ls -la shared/terraform/
 
       - name: Terraform Init
+        working-directory: shared/terraform
         run: |
           terraform init \
             -backend-config="bucket=jolly-sandbox-terraform-state" \
@@ -58,6 +57,7 @@ jobs:
         id: instance
 
       - name: Debug Terraform Outputs
+        working-directory: shared/terraform
         run: |
           echo "Raw terraform output:"
           terraform output
