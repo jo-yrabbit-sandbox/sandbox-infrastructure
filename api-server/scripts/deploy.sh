@@ -51,7 +51,7 @@ After=network.target
 User=ubuntu
 WorkingDirectory=$APP_DIR/current/api-server
 Environment="PATH=$APP_DIR/current/api-server/venv/bin"
-ExecStart=$APP_DIR/current/venv/bin/gunicorn -c gunicorn_config.py app:app
+ExecStart=$APP_DIR/current/api-server/venv/bin/gunicorn -c gunicorn_config.py app:app
 Restart=always
 
 [Install]
