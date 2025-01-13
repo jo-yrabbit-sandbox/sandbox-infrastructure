@@ -24,14 +24,19 @@ mkdir -p current
 cd current
 
 # Clone latest code (you might want to use a deploy key for private repos)
-git clone https://github.com/jo-yrabbit-sandbox/sandbox-api-server.git .
+git clone https://github.com/jo-yrabbit-sandbox/sandbox-infrastructure.git .
+cp -r api-server/*
 
 # Set up virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+echo "Installing dependencies..."
+pip install -r requirements.txt || {
+    echo "pip install failed with exit code $?"
+    exit 1
+}
 
 # Update Redis host in configuration
 sed -i "s/your-elasticache-endpoint.region.cache.amazonaws.com/$REDIS_HOST/g" api/server.py
