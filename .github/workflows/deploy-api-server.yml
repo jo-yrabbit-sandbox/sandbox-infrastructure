@@ -30,8 +30,32 @@ jobs:
           terraform_version: "1.1.7"
           terraform_wrapper: false
 
+      - name: Debug Directory
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "\nContents of shared/terraform:"
+          ls -la shared/terraform/
+
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=jolly-sandbox-terraform-state" \
+            -backend-config="key=infrastructure/terraform.tfstate" \
+            -backend-config="region=us-east-2" \
+            -backend-config="dynamodb_table=terraform-state-locks" \
+            -backend-config="encrypt=true"
+
+      - name: Get Instance Details
+        working-directory: shared/terraform
+        run: |
+          echo "Terraform outputs:"
+          terraform output
+          
+          EC2_DNS=$(terraform output -raw api_server_endpoint)
+          echo "Got EC2 DNS: $EC2_DNS"
+          echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
+        id: instance
 
       - name: Debug Terraform Outputs
         run: |
