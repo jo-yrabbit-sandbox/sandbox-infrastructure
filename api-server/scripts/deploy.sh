@@ -58,6 +58,9 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
+# Make log dir matching gunicorn_config.py
+mkdir logs
+
 # Reload systemd, enable and restart service
 sudo systemctl daemon-reload
 sudo systemctl enable api-server
