@@ -44,7 +44,7 @@ app.logger.info('API server startup')
 try:
     redis_handler = RedisHandler(logger=app.logger)
     redis_handler.start(redis_host=os.getenv('REDIS_HOST', 'localhost'),
-                        redis_port=int(os.getenv('REDIS_PORT', 6397)),
+                        redis_port=int(os.getenv('REDIS_PORT', 6379)),
                         redis_password=os.getenv('REDIS_PASSWORD'))
     app.logger.info('Connected to redis')
 except Exception as e:
