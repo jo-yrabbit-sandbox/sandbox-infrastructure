@@ -81,6 +81,16 @@ def health_check():
         })
 
 
+@app.route('/debug-redis')
+def debug_redis():
+    import os
+    redis_host = os.getenv('REDIS_HOST', 'localhost')
+    return {
+        'redis_host': redis_host,
+        'environment': dict(os.environ)
+    }
+
+
 @app.route('/api/v1/messages/latest', methods=['GET'])
 def get_latest_message():
     """Get latest message"""
