@@ -31,8 +31,21 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init
+        run: terraform init
+
+      - name: Debug Terraform Outputs
         run: |
-          terraform init
+          echo "Raw terraform output:"
+          terraform output
+          
+          echo "JSON terraform output:"
+          terraform output -json || echo "JSON output failed"
+          
+          echo "Trying individual outputs:"
+          echo "Security Group ID:"
+          terraform output api_server_security_group_id || echo "Failed to get security group ID"
+          echo "API Endpoint:"
+          terraform output api_server_endpoint || echo "Failed to get API endpoint"
 
       - name: Get Terraform Outputs
         id: terraform

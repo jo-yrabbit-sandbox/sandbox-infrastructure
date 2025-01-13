@@ -13,8 +13,3 @@ output "redis_endpoint" {
   description = "Redis cluster endpoint"
   value       = module.api_server.redis_endpoint
 }
-
-output "redis_port" {
-  description = "Redis port"
-  value       = module.api_server
-}
