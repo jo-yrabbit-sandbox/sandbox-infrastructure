@@ -3,7 +3,9 @@ set -x  # Print commands and their arguments as they are executed
 set -e # Exit on any error
 trap 'echo "Error on line $LINENO"' ERR  # Print line number where any error occurs
 
-echo "Starting deployment..."
+# Get the branch name from the first argument
+BRANCH_NAME=$1
+echo "Starting deployment from branch: $BRANCH_NAME"
 
 # Install required packages
 sudo apt-get update
@@ -24,7 +26,7 @@ mkdir -p current
 cd current
 
 # Clone latest code (you might want to use a deploy key for private repos)
-git clone https://github.com/jo-yrabbit-sandbox/sandbox-infrastructure.git .
+git clone -b $BRANCH_NAME https://github.com/jo-yrabbit-sandbox/sandbox-infrastructure.git .
 cd api-server
 
 # Set up virtual environment
