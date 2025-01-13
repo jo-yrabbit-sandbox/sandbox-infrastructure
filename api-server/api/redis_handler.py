@@ -3,6 +3,7 @@ import time
 
 
 MAX_MESSAGES=100  # TODO: Make configurable
+TIMEOUT=900
 
 class RedisHandler():
 
@@ -47,8 +48,8 @@ class RedisHandler():
                 port=redis_port,
                 password=redis_password,
                 decode_responses=True,
-                socket_timeout=5,  # 5 seconds timeout for operations
-                socket_connect_timeout=5  # 5 seconds timeout for connection
+                socket_timeout=TIMEOUT,  # 5 seconds timeout for operations
+                socket_connect_timeout=TIMEOUT  # 5 seconds timeout for connection
             )
         except Exception as e:
             self.logger.error('Failed to start a new redis client - {}', e.args)
