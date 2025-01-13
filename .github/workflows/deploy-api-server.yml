@@ -48,39 +48,15 @@ jobs:
       - name: Get Instance Details
         working-directory: shared/terraform
         run: |
-          echo "Terraform outputs:"
-          terraform output
-          
+          # Remember to set terraform_wrapper = false
+          SG_ID=$(terraform output -raw api_server_security_group_id)
+          echo "Got SG_ID: $SG_ID"
+          echo "security_group_id=$SG_ID" >> $GITHUB_OUTPUT
+
           EC2_DNS=$(terraform output -raw api_server_endpoint)
           echo "Got EC2 DNS: $EC2_DNS"
           echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
         id: instance
-
-      - name: Debug Terraform Outputs
-        working-directory: shared/terraform
-        run: |
-          echo "Raw terraform output:"
-          terraform output
-          
-          echo "JSON terraform output:"
-          terraform output -json || echo "JSON output failed"
-          
-          echo "Trying individual outputs:"
-          echo "Security Group ID:"
-          terraform output api_server_security_group_id || echo "Failed to get security group ID"
-          echo "API Endpoint:"
-          terraform output api_server_endpoint || echo "Failed to get API endpoint"
-
-      - name: Get Terraform Outputs
-        id: terraform
-        run: |
-          # Remember to set terraform_wrapper = false
-          SG_ID=$(terraform output api_server_security_group_id)
-          EC2_DNS=$(terraform output api_server_endpoint)
-          
-          # Store in GitHub outputs
-          echo "security_group_id=$SG_ID" >> $GITHUB_OUTPUT
-          echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
 
       - name: Update Security Group
         run: |
