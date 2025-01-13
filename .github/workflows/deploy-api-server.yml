@@ -56,7 +56,7 @@ jobs:
           EC2_DNS=$(terraform output -raw api_server_endpoint)
           echo "Got EC2 DNS: $EC2_DNS"
           echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
-        id: instance
+        id: terraform
 
       - name: Update Security Group
         run: |
