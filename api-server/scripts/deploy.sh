@@ -53,6 +53,7 @@ After=network.target
 User=ubuntu
 WorkingDirectory=$APP_DIR/current/api-server
 Environment="PATH=$APP_DIR/current/api-server/venv/bin"
+Environment="REDIS_HOST=$REDIS_HOST"
 ExecStart=$APP_DIR/current/api-server/venv/bin/gunicorn -c gunicorn_config.py app:app
 Restart=always
 
