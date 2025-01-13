@@ -1,6 +1,9 @@
 import redis
 import time
 
+
+MAX_MESSAGES=100  # TODO: Make configurable
+
 class RedisHandler():
 
     def __init__(self, logger):
@@ -43,7 +46,9 @@ class RedisHandler():
                 host=redis_host,
                 port=redis_port,
                 password=redis_password,
-                decode_responses=True
+                decode_responses=True,
+                socket_timeout=5,  # 5 seconds timeout for operations
+                socket_connect_timeout=5  # 5 seconds timeout for connection
             )
         except Exception as e:
             self.logger.error('Failed to start a new redis client - {}', e.args)
@@ -69,19 +74,36 @@ class RedisHandler():
             "text" : text,
             "timestamp": timestamp
         }
-        self.redis_client.hset(message_id, mapping=message_data)
+
+        self.logger.info(f'Setting hash to {message_id=}, mapping: {message_data=}')
+        try:
+            self.redis_client.hset(message_id, mapping=message_data)
+        except TimeoutError as e:
+            self.logger.error(f"Redis timeout: {e}")
+        except Exception as e:
+            message = f'Failed to set hash to {message_id=}, mapping: {message_data} - {e.args}'
+            self.logger.error(message)
+            raise Exception(message)
 
         key = f"state:{state}:messages"
+        self.logger.info(f'Adding to hash {message_id=} new key {key=}')
         try:
             self.redis_client.lpush(key, message_id)
+        except TimeoutError as e:
+            self.logger.error(f"Redis timeout: {e}")
         except Exception as e:
-            raise Exception('Failed to store message - {}', e.args)
+            message = f'Failed to add new key {key=} to hash {message_id=} - {e.args}'
+            self.logger.error(message)
+            raise Exception(message)
         
-        # TODO: Make configurable
         try:
-            self.redis_client.ltrim(key, 0, 99)
+            self.redis_client.ltrim(key, 0, MAX_MESSAGES-1)
+        except TimeoutError as e:
+            self.logger.error(f"Redis timeout: {e}")
         except Exception as e:
-            raise Exception('Failed to purge messages exceeding capacity (100) - {}', e.args)
+            message = f'Failed to purge messages exceeding capacity ({MAX_MESSAGES}) - {e.args}'
+            self.logger.error(message)
+            raise Exception(message)
 
-        self.logger.info(f'Successfully stored {message_id=}')
+        self.logger.info(f'Successfully stored {message_id=}, mapping: {message_data}, key: {key}')
         return message_id

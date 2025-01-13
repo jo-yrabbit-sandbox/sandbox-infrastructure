@@ -57,10 +57,28 @@ except Exception as e:
 # Routes
 ####
 
+@app.route('/api/v1/hello', methods=['GET'])
+def hello():
+    print('Received request: hello')
+    return jsonify({'status': 'healthy'})
+
+
 @app.route('/api/v1/health', methods=['GET'])
 def health_check():
     print('Received request: health')
-    return jsonify({"status": "healthy"})
+    try:
+        redis_handler.redis_client.ping()
+        return jsonify({
+            'status': 'healthy',
+            'redis': 'connected',
+            'redis_host': os.getenv('REDIS_HOST', 'not_set')
+            }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'redis': str(e),
+            'redis_host': os.getenv('REDIS_HOST', 'not_set')
+        })
 
 
 @app.route('/api/v1/messages/latest', methods=['GET'])
