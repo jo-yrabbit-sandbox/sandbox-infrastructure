@@ -13,19 +13,6 @@
 #   # api_security_group = module.shared.api_security_group
 # }
 
-# # Reference existing EC2 instance
-# data "aws_instance" "api_server" {
-#   filter {
-#     name   = "instance-id"
-#     values = [var.existing_instance_id]
-#   }
-# }
-
-# # Reference existing security group
-# data "aws_security_group" "api_server" {
-#   id = var.existing_security_group_id
-# }
-
 # # module "bot_platform" {
 # #   source = "./bot-platform/terraform"
   
@@ -34,16 +21,3 @@
 # #   team_names        = var.team_names
 # #   api_endpoint      = module.api_server.api_endpoint
 # # }
-
-# # Root level outputs
-# output "api_server_security_group_id" {
-#   description = "Security group ID of the API server"
-#   # value       = var.existing_security_group_id  # Use your existing security group ID here
-#   value       = data.aws_security_group.api_server.id
-# }
-
-# output "api_server_endpoint" {
-#   description = "Public DNS of the API server"
-#   # value       = module.api_server.api_endpoint
-#   value       = data.aws_instance.api_server.public_dns
-# }

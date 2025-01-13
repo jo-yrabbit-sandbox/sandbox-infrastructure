@@ -43,7 +43,6 @@ app.logger.setLevel(logging.INFO)
 app.logger.info('API server startup')
 
 # Configure redis
-app.logger.info('REDIS_HOST={}'.format(os.getenv('REDIS_HOST', 'localhost')))
 try:
     redis_handler = RedisHandler(logger=app.logger)
     redis_handler.start(redis_host=os.getenv('REDIS_HOST', 'localhost'),
