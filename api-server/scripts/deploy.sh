@@ -40,9 +40,6 @@ pip install -r requirements.txt || {
     exit 1
 }
 
-# Update Redis host in configuration
-sed -i "s/your-elasticache-endpoint.region.cache.amazonaws.com/$REDIS_HOST/g" api/server.py
-
 # Create systemd service file
 sudo tee /etc/systemd/system/api-server.service << EOF
 [Unit]
