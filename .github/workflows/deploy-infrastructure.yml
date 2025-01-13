@@ -5,9 +5,8 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'api-server/**'
       - 'shared/**'
-      - 'terraform/**'
+      - 'api-server/terraform/**'
   workflow_dispatch:
 
 jobs:
@@ -29,44 +28,17 @@ jobs:
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_wrapper: false
 
     - name: Terraform Init
-      run: |
-        terraform init \
-          -backend-config="bucket=jolly-sandbox-terraform-state" \
-          -backend-config="key=infrastructure/terraform.tfstate" \
-          -backend-config="region=us-east-2" \
-          -backend-config="dynamodb_table=terraform-state-locks" \
-          -backend-config="encrypt=true"
-
-    ## Added these debug steps      
-    - name: Debug Terraform State
-      run: |
-        echo "Current directory:"
-        pwd
-        echo "\nDirectory contents:"
-        ls -la
-        echo "\nTerraform version:"
-        terraform version
-        
-    - name: Terraform Plan
-      env:
-        TF_VAR_existing_instance_id: ${{ secrets.EC2_INSTANCE_ID }}
-        TF_VAR_existing_security_group_id: ${{ secrets.EXISTING_SECURITY_GROUP_ID }}
-      run: |
-        echo "Running terraform plan..."
-        terraform plan -input=false -out=tfplan || {
-          echo "Terraform plan failed. State:"
-          terraform show
-          exit 1
-        }
-    ## Added these debug steps      
+      working-directory: shared/terraform
+      run: terraform init
 
     - name: Terraform Plan
-      env:
-        TF_VAR_existing_instance_id: ${{ secrets.EC2_INSTANCE_ID }}
-        TF_VAR_existing_security_group_id: ${{ secrets.EXISTING_SECURITY_GROUP_ID }}
+      working-directory: shared/terraform
       run: terraform plan -out=tfplan
-      
+    
     - name: Terraform Apply
+      working-directory: shared/terraform
       run: terraform apply tfplan

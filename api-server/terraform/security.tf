@@ -2,7 +2,7 @@
 resource "aws_security_group" "api" {
   name        = "${local.name_prefix}-sg"
   description = "Security group for API server"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
 
   # SSH access for deployment
   ingress {
@@ -33,10 +33,7 @@ resource "aws_security_group" "api" {
     from_port = 6379
     to_port   = 6379
     protocol  = "tcp"
-    cidr_blocks = [
-      aws_subnet.private_1.cidr_block,
-      aws_subnet.private_2.cidr_block
-    ]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   # Outbound internet access
@@ -56,7 +53,7 @@ resource "aws_security_group" "api" {
 resource "aws_security_group" "redis" {
   name        = "${local.name_prefix}-redis-sg"
   description = "Security group for Redis cluster"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
 
   # Redis port access (only from API server)
   ingress {

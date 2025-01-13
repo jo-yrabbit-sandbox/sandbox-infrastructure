@@ -1,8 +1,7 @@
-# redis.tf
-
+# api-server/terraform/elasticache.tf
 resource "aws_elasticache_subnet_group" "redis" {
   name       = "${local.name_prefix}-redis-subnet-group"
-  subnet_ids = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  subnet_ids = var.private_subnet_ids
 }
 
 resource "aws_elasticache_parameter_group" "redis" {

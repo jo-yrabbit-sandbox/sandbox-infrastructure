@@ -17,7 +17,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "api_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.micro"  # Adjust based on your needs
-  subnet_id     = aws_subnet.public_1.id  # Using first public subnet
+  subnet_id     = var.public_subnet_ids[0] # Using first public subnet
   key_name      = "sandbox-api-server"
 
   associate_public_ip_address = true

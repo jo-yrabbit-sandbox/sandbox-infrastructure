@@ -3,7 +3,8 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'api-server/**'
+      - 'api-server/api/**'
+      - 'api-server/scripts/**'
   workflow_dispatch:
 
 jobs:
@@ -31,12 +32,7 @@ jobs:
 
       - name: Terraform Init
         run: |
-          terraform init \
-            -backend-config="bucket=jolly-sandbox-terraform-state" \
-            -backend-config="key=infrastructure/terraform.tfstate" \
-            -backend-config="region=us-east-2" \
-            -backend-config="dynamodb_table=terraform-state-locks" \
-            -backend-config="encrypt=true"
+          terraform init
 
       - name: Get Terraform Outputs
         id: terraform
