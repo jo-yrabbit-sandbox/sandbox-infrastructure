@@ -17,6 +17,8 @@ infrastructure/
 │   ├── requirements.txt
 │   └── scripts/
 │       └── deploy.sh
+├── bot-platform/
+│   └── terraform/        # Bot infrastructure only
 └── .github/
     └── workflows/
         ├── deploy-infrastructure.yml
@@ -277,6 +279,7 @@ Create role with Web Identity using GitHub's OIDC provider
 TERRAFORM_ROLE_ARN="arn:aws:iam::ACCOUNT_ID:role/terraform-role"
 AWS_REGION="us-east-1"
 ALLOWED_IP="your-ip-address"  # To restrict SSH access to EC2 instance
+ENVIRONMENT="production"  # Becomes name prefix for many AWS resources ("sandbox", "production")
 
 # Deployment
 DEPLOY_ROLE_ARN="arn:aws:iam::ACCOUNT_ID:role/deployer-role"

@@ -39,13 +39,13 @@ module "api_server" {
   allowed_ip           = var.allowed_ip
 }
 
-# module "bot_platform" {
-#   source = "../../bot-platform/terraform"
+module "bot_platform" {
+  source = "../../bot-platform/terraform"
   
-#   vpc_id            = module.shared.vpc_id
-#   private_subnets   = module.shared.private_subnets
-#   team_names        = var.team_names
-#   api_endpoint      = module.api_server.api_endpoint
-# }
-
-
+  environment          = var.environment
+  vpc_id              = aws_vpc.main.id
+  private_subnet_ids  = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  api_security_group_id = module.api_server.security_group_id
+  bot_names           = ["test-bot"]
+  api_endpoint        = module.api_server.api_endpoint
+}

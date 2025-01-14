@@ -3,7 +3,10 @@ name: Deploy Infrastructure
 
 on:
   push:
-    branches: [ main ]
+    branches: [
+      main,
+      add-bot-platmform
+    ]
     paths:
       - 'shared/**'
       - 'api-server/terraform/**'
@@ -39,6 +42,7 @@ jobs:
       working-directory: shared/terraform
       env:
         TF_VAR_allowed_ip: ${{ secrets.ALLOWED_IP }}
+        TF_VAR_environment: ${{ secrets.ENVIRONMENT }}
       run: terraform plan -out=tfplan
     
     - name: Terraform Apply

@@ -20,14 +20,9 @@ variable "vpc_cidr" {
 variable "allowed_ip" {
   description = "IP address allowed for SSH access"
   type        = string
+  default     = "0.0.0.0"
 }
 
 locals {
-  name_prefix = "${var.environment}-api"
+  name_prefix_api = "${var.environment}-api"
 }
-
-# variable "team_names" {
-#   description = "Value of teams using bot-platform"
-#   type        = string
-#   default     = "sandbox-bot"
-# }
