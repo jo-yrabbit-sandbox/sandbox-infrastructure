@@ -3,7 +3,7 @@ name: Deploy Telegram Bot
 
 on:
   push:
-    branches: [ main, add-bot-platmform ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
