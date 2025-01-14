@@ -1,0 +1,8 @@
+{
+    "bot_id": "test_bot_id",
+    "message": {
+      "state": "test_state",
+      "text": "test_text_2",
+      "timestamp": "test_timestamp_2"
+      }
+}

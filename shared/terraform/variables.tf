@@ -1,18 +1,33 @@
-# infrastructure/shared/terraform/variables.tf
+# infrastructure/variables.tf
 variable "aws_region" {
-  description = "AWS region"
+  description = "Value of aws region"
   type        = string
   default     = "us-east-2"
 }
 
-variable "existing_vpc_id" {
-  description = "Existing VPC ID"
+variable "environment" {
+  description = "Environment name"
   type        = string
-  default     = "vpc-09c0020a4fdedf318"
+  default     = "production"
 }
 
-variable "existing_public_subnet_ids" {
-  description = "Existing public subnet IDs"
-  type        = list(string)
-  default     = ["subnet-006b35601869ac401", "subnet-095bcd8bd03445693"]
+variable "vpc_cidr" {
+  description = "CIDR block for VPC"
+  type        = string
+  default     = "10.0.0.0/16"
 }
+
+variable "allowed_ip" {
+  description = "IP address allowed for SSH access"
+  type        = string
+}
+
+locals {
+  name_prefix = "${var.environment}-api"
+}
+
+# variable "team_names" {
+#   description = "Value of teams using bot-platform"
+#   type        = string
+#   default     = "sandbox-bot"
+# }

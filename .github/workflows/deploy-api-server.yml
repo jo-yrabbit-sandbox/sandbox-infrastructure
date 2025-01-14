@@ -3,7 +3,8 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'api-server/**'
+      - 'api-server/api/**'
+      - 'api-server/scripts/**'
   workflow_dispatch:
 
 jobs:
@@ -29,7 +30,13 @@ jobs:
           terraform_version: "1.1.7"
           terraform_wrapper: false
 
+      - name: Debug Directory
+        run: |
+          echo "Contents of shared/terraform:"
+          ls -la shared/terraform/
+
       - name: Terraform Init
+        working-directory: shared/terraform
         run: |
           terraform init \
             -backend-config="bucket=jolly-sandbox-terraform-state" \
@@ -38,16 +45,18 @@ jobs:
             -backend-config="dynamodb_table=terraform-state-locks" \
             -backend-config="encrypt=true"
 
-      - name: Get Terraform Outputs
-        id: terraform
+      - name: Get Instance Details
+        working-directory: shared/terraform
         run: |
           # Remember to set terraform_wrapper = false
-          SG_ID=$(terraform output api_server_security_group_id)
-          EC2_DNS=$(terraform output api_server_endpoint)
-          
-          # Store in GitHub outputs
+          SG_ID=$(terraform output -raw api_server_security_group_id)
+          echo "Got SG_ID: $SG_ID"
           echo "security_group_id=$SG_ID" >> $GITHUB_OUTPUT
+
+          EC2_DNS=$(terraform output -raw api_server_endpoint)
+          echo "Got EC2 DNS: $EC2_DNS"
           echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
+        id: terraform
 
       - name: Update Security Group
         run: |
@@ -83,8 +92,10 @@ jobs:
       - name: Deploy to EC2
         env:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          GITHUB_BRANCH: ${{ github.ref_name }}
         run: |
-          ssh -v -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@${{ steps.terraform.outputs.ec2_dns }} 'bash -s' < api-server/scripts/deploy.sh
+          ssh -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@${{ steps.terraform.outputs.ec2_dns }} \
+            "REDIS_HOST=$REDIS_HOST bash -s" < api-server/scripts/deploy.sh "$GITHUB_BRANCH"
 
       - name: Cleanup Security Group
         if: always()

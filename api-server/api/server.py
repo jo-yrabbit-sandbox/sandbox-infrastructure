@@ -15,20 +15,18 @@ if os.path.isfile(dotenv):
     load_dotenv(dotenv)
 
 # Note: If you change attribute name `app` for this flask server,
-# make sure you edit the Dockerfile gunicorn command arg too
+# make sure you edit the Dockerfile and gunicorn command arg too
 app = Flask(__name__)
 
 # Note: For debugging, replace with CORS(app)
 CORS(app, resources={
-    r"/*": {
-        "origins": ["http://localhost:8000"]
-    }
-})
-CORS(app, resources={
-    r"/api/*": {
-        "origins": [f"{os.getenv('WEBSITE_URL', 'http://localhost:8000')}"],
-        "methods": ["GET"],
-        "allow_headers": ["Content-Type"]
+    r'/api/*': {
+        'origins': [
+            f'{os.getenv("WEBSITE_URL", "http://localhost:8000")}',
+            'your-production-domain.com'
+            ],
+        'methods': ['GET'],
+        'allow_headers': ['Content-Type']
     }
 })
 
@@ -46,7 +44,7 @@ app.logger.info('API server startup')
 try:
     redis_handler = RedisHandler(logger=app.logger)
     redis_handler.start(redis_host=os.getenv('REDIS_HOST', 'localhost'),
-                        redis_port=int(os.getenv('REDIS_PORT', 6397)),
+                        redis_port=int(os.getenv('REDIS_PORT', 6379)),
                         redis_password=os.getenv('REDIS_PASSWORD'))
     app.logger.info('Connected to redis')
 except Exception as e:
@@ -57,10 +55,53 @@ except Exception as e:
 # Routes
 ####
 
+@app.route('/api/v1/hello', methods=['GET'])
+def hello():
+    print('Received request: hello')
+    return jsonify({'status': 'healthy'})
+
+
 @app.route('/api/v1/health', methods=['GET'])
 def health_check():
     print('Received request: health')
-    return jsonify({"status": "healthy"})
+    result = ''
+
+    if not redis_handler.redis_client:
+        message = 'Redis client has not been initialized yet. Run `start` before interacting with it'
+        app.logger.error(message)
+        return jsonify({
+            'status': 'unhealthy',
+            'redis': 'not_started',
+            'ping': result,
+            'redis_host': os.getenv('REDIS_HOST', 'not_set')
+        })
+
+    try:
+        result = redis_handler.redis_client.ping()
+        return jsonify({
+            'status': 'healthy',
+            'redis': 'connected',
+            'ping': result,
+            'redis_host': os.getenv('REDIS_HOST', 'not_set')
+            }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'redis': str(e),
+            'ping': result,
+            'redis_host': os.getenv('REDIS_HOST', 'not_set')
+        })
+
+
+@app.route('/debug-redis')
+def debug_redis():
+    import os
+    redis_host = os.getenv('REDIS_HOST', 'localhost')
+    return {
+        'redis_host': redis_host,
+        'environment': dict(os.environ),
+        'redis_client': str(redis_handler.redis_client)
+    }
 
 
 @app.route('/api/v1/messages/latest', methods=['GET'])

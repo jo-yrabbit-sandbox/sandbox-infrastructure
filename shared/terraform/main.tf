@@ -6,28 +6,46 @@ terraform {
       version = "~> 4.0"
     }
   }
+
+  backend "s3" {
+    bucket         = "jolly-sandbox-terraform-state"
+    key            = "infrastructure/terraform.tfstate"
+    region         = "us-east-2"
+    dynamodb_table = "terraform-state-locks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = {
+      Environment = var.environment
+      Managed_by  = "terraform"
+    }
+  }
 }
 
-# Reference existing VPC
-data "aws_vpc" "existing" {
-  id = var.existing_vpc_id
+# Call the API server module
+module "api_server" {
+  source = "../../api-server/terraform"
+  
+  vpc_id               = aws_vpc.main.id
+  public_subnet_ids    = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+  private_subnet_ids   = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  private_subnet_cidrs = [aws_subnet.private_1.cidr_block, aws_subnet.private_2.cidr_block]
+  environment          = var.environment
+  allowed_ip           = var.allowed_ip
 }
 
-# Reference existing subnets
-data "aws_subnet" "public" {
-  count = length(var.existing_public_subnet_ids)
-  id    = var.existing_public_subnet_ids[count.index]
-}
+# module "bot_platform" {
+#   source = "../../bot-platform/terraform"
+  
+#   vpc_id            = module.shared.vpc_id
+#   private_subnets   = module.shared.private_subnets
+#   team_names        = var.team_names
+#   api_endpoint      = module.api_server.api_endpoint
+# }
 
-# Output these for use in other modules
-output "vpc_id" {
-  value = data.aws_vpc.existing.id
-}
 
-output "public_subnet_ids" {
-  value = [for subnet in data.aws_subnet.public : subnet.id]
-}

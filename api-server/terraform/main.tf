@@ -1,89 +1,33 @@
-# infrastructure/api-server/terraform/main.tf
-# Reference existing security group
-data "aws_security_group" "existing" {
-  id = var.existing_security_group_id
-}
-
-# Your existing API server configuration, modified to use shared resources
-resource "aws_instance" "api_server" {
-  ami           = data.aws_ami.amazon_linux_2.id
-  instance_type = var.instance_type
-  subnet_id     = var.public_subnet_ids[0]
-  vpc_security_group_ids = [data.aws_security_group.existing.id]
-  
-  tags = {
-    Name = "api-server"
-  }
-}
-
-# Get latest Amazon Linux 2 AMI
-data "aws_ami" "amazon_linux_2" {
+# api.tf
+data "aws_ami" "ubuntu" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = ["099720109477"] # Canonical
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 }
 
-output "api_endpoint" {
-  description = "The public DNS of the API server"
-  value       = aws_instance.api_server.public_dns
+resource "aws_instance" "api_server" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.micro"  # Adjust based on your needs
+  subnet_id     = var.public_subnet_ids[0] # Using first public subnet
+  key_name      = "${local.name_prefix}-server"
+
+  associate_public_ip_address = true
+  vpc_security_group_ids     = [aws_security_group.api.id]
+
+  root_block_device {
+    volume_size = 20  # Adjust based on your needs
+  }
+
+  tags = {
+    Name = "${local.name_prefix}-server"
+  }
 }
-
-# output "security_group_id" {
-#   description = "The ID of the security group attached to the API server"
-#   value       = data.aws_security_group.existing.id
-# }
-
-# output "instance_id" {
-#   description = "The instance ID of the API server"
-#   value       = aws_instance.api_server.id
-# }
-
-
-#   # Configure load balancer and auto-scaling group for API server
-#   resource "aws_lb" "api_lb" {
-#   name               = "api-server-lb"
-#   internal           = false
-#   load_balancer_type = "application"
-#   security_groups    = [aws_security_group.api_sg.id]
-#   subnets           = var.public_subnets
-#   }
-
-#   resource "aws_autoscaling_group" "api_asg" {
-#   name                = "api-server-asg"
-#   desired_capacity    = 2
-#   max_size            = 4
-#   min_size            = 1
-#   target_group_arns   = [aws_lb_target_group.api_tg.arn]
-#   vpc_zone_identifier = var.private_subnets
-
-#   launch_template {
-#       id      = aws_launch_template.api_template.id
-#       version = "$Latest"
-#   }
-#   }
-
-#   # Security group for API server
-#   resource "aws_security_group" "api_sg" {
-#   name        = "api-server-sg"
-#   description = "Security group for API server"
-#   vpc_id      = var.vpc_id
-
-#   ingress {
-#       from_port   = 80
-#       to_port     = 80
-#       protocol    = "tcp"
-#       cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   egress {
-#       from_port   = 0
-#       to_port     = 0
-#       protocol    = "-1"
-#       cidr_blocks = ["0.0.0.0/0"]
-#   }
-#   }
-# }

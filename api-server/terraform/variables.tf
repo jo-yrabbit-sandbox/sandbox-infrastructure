@@ -1,4 +1,4 @@
-# infrastructure/api-server/terraform/variables.tf
+# Variables from parent module
 variable "vpc_id" {
   description = "VPC ID from shared module"
   type        = string
@@ -9,20 +9,26 @@ variable "public_subnet_ids" {
   type        = list(string)
 }
 
-variable "instance_type" {
-  description = "EC2 instance type"
-  type        = string
-  default     = "t2.micro"
+variable "private_subnet_ids" {
+  description = "Private subnet IDs from shared module"
+  type        = list(string)
 }
 
-variable "existing_security_group_id" {
-  description = "Existing security group ID"
-  type        = string
-  default     = "sg-00dabfbfb3954248d"
+variable "private_subnet_cidrs" {
+  description = "Private subnet cidr blocks from shared module"
+  type        = list(string)
 }
 
-variable "aws_region" {
-  description = "AWS region"
+variable "environment" {
+  description = "Environment name (e.g., sandbox, prod)"
   type        = string
-  default     = "us-east-2"
+}
+
+variable "allowed_ip" {
+  description = "IP address allowed for SSH access"
+  type        = string
+}
+
+locals {
+  name_prefix = "${var.environment}-api"
 }
