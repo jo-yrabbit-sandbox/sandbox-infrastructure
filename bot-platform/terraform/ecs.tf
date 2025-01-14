@@ -68,6 +68,9 @@ resource "aws_ssm_parameter" "bot_tokens" {
 }
 
 # ECS Service for each bot, keeps it running
+data "aws_iam_role" "ecs" {
+  name = "AWSServiceRoleForECS"
+}
 resource "aws_ecs_service" "bot_service" {
   for_each = toset(var.bot_names)
   
@@ -76,7 +79,7 @@ resource "aws_ecs_service" "bot_service" {
   task_definition = aws_ecs_task_definition.bot_task[each.key].arn
   desired_count   = 1  # Keep one instance running
   launch_type     = "FARGATE"
-  depends_on = [aws_iam_service_linked_role.ecs]
+  depends_on = [data.aws_iam_role.ecs]
 
   network_configuration {
     subnets         = var.private_subnet_ids
