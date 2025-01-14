@@ -4,8 +4,8 @@ name: Deploy Infrastructure
 on:
   push:
     branches: [
-      main
-      add-bot-platmform  # TODO: remove me before merge to main
+      main,
+      add-bot-platmform
     ]
     paths:
       - 'shared/**'
@@ -42,6 +42,7 @@ jobs:
       working-directory: shared/terraform
       env:
         TF_VAR_allowed_ip: ${{ secrets.ALLOWED_IP }}
+        TF_VAR_environment: ${{ secrets.ENVIRONMENT }}
       run: terraform plan -out=tfplan
     
     - name: Terraform Apply
