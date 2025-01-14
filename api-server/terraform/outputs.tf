@@ -1,6 +1,14 @@
 # Outputs to be used by parent module
+
+# For SSH access (without port)
 output "api_endpoint" {
-  description = "Public DNS of the API server with port"
+  description = "Public DNS of the API server"
+  value       = aws_instance.api_server.public_dns
+}
+
+# For bot communication (with port)
+output "api_url" {
+  description = "Full API URL including port"
   value       = "${aws_instance.api_server.public_dns}:5000"
 }
 

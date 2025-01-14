@@ -25,7 +25,7 @@ variable "bot_names" {
   default     = ["test-bot"]  # Default for testing
 }
 
-variable "api_endpoint" {
-  description = "API Server endpoint with port"
+variable "api_url" {
+  description = "Full API URL including port"
   type        = string
 }
