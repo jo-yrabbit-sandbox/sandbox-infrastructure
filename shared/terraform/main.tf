@@ -46,4 +46,6 @@ module "bot_platform" {
   vpc_id              = aws_vpc.main.id
   private_subnet_ids  = [aws_subnet.private_1.id, aws_subnet.private_2.id]
   api_security_group_id = module.api_server.security_group_id
+  bot_names           = ["test-bot"]
+  api_endpoint        = module.api_server.api_endpoint
 }

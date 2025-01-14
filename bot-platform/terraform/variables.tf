@@ -22,5 +22,10 @@ variable "private_subnet_ids" {
 variable "bot_names" {
   description = "List of bot names to create repositories for"
   type        = list(string)
-  default     = ["test-bot"]  # We can start with one for testing
+  default     = ["test-bot"]  # Default for testing
+}
+
+variable "api_endpoint" {
+  description = "API Server endpoint with port"
+  type        = string
 }

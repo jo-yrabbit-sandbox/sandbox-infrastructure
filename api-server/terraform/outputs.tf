@@ -1,7 +1,7 @@
 # Outputs to be used by parent module
 output "api_endpoint" {
-  description = "Public DNS of the API server"
-  value       = aws_instance.api_server.public_dns
+  description = "Public DNS of the API server with port"
+  value       = "${aws_instance.api_server.public_dns}:5000"
 }
 
 output "redis_endpoint" {
