@@ -6,7 +6,7 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = {
-    Name        = "${local.name_prefix}-vpc"
+    Name        = "${local.name_prefix_api}-vpc"
     Environment = var.environment
   }
 }
@@ -19,7 +19,7 @@ resource "aws_subnet" "public_1" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name        = "${local.name_prefix}-public1-subnet-${var.aws_region}a"
+    Name        = "${local.name_prefix_api}-public1-subnet-${var.aws_region}a"
     Environment = var.environment
   }
 }
@@ -31,7 +31,7 @@ resource "aws_subnet" "public_2" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name        = "${local.name_prefix}-public2-subnet-${var.aws_region}b"
+    Name        = "${local.name_prefix_api}-public2-subnet-${var.aws_region}b"
     Environment = var.environment
   }
 }
@@ -43,7 +43,7 @@ resource "aws_subnet" "private_1" {
   availability_zone = "${var.aws_region}a"
 
   tags = {
-    Name = "${local.name_prefix}-private1-${var.aws_region}a"
+    Name = "${local.name_prefix_api}-private1-${var.aws_region}a"
   }
 }
 
@@ -53,7 +53,7 @@ resource "aws_subnet" "private_2" {
   availability_zone = "${var.aws_region}b"
 
   tags = {
-    Name = "${local.name_prefix}-private2-${var.aws_region}b"
+    Name = "${local.name_prefix_api}-private2-${var.aws_region}b"
   }
 }
 
@@ -62,7 +62,7 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name        = "${local.name_prefix}-igw"
+    Name        = "${local.name_prefix_api}-igw"
     Environment = var.environment
   }
 }
@@ -70,7 +70,7 @@ resource "aws_internet_gateway" "main" {
 # NAT Gateway
 resource "aws_eip" "nat" {
   tags = {
-    Name = "${local.name_prefix}-nat-eip"
+    Name = "${local.name_prefix_api}-nat-eip"
     Environment = var.environment
   }
 }
@@ -80,7 +80,7 @@ resource "aws_nat_gateway" "main" {
   subnet_id     = aws_subnet.public_1.id  # Place NAT Gateway in first public subnet
 
   tags = {
-    Name = "${local.name_prefix}-nat"
+    Name = "${local.name_prefix_api}-nat"
     Environment = var.environment
   }
 }
@@ -95,7 +95,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name        = "${local.name_prefix}-rtb-public"
+    Name        = "${local.name_prefix_api}-rtb-public"
     Environment = var.environment
   }
 }
@@ -109,7 +109,7 @@ resource "aws_route_table" "private_1" {
   }
 
   tags = {
-    Name = "${local.name_prefix}-rtb-private1-${var.aws_region}a"
+    Name = "${local.name_prefix_api}-rtb-private1-${var.aws_region}a"
   }
 }
 
@@ -122,7 +122,7 @@ resource "aws_route_table" "private_2" {
   }
 
   tags = {
-    Name = "${local.name_prefix}-rtb-private2-${var.aws_region}b"
+    Name = "${local.name_prefix_api}-rtb-private2-${var.aws_region}b"
   }
 }
 

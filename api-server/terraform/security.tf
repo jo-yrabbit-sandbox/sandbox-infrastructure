@@ -1,7 +1,7 @@
 # security.tf
 
 resource "aws_security_group" "api" {
-  name        = "${local.name_prefix}-sg"
+  name        = "${local.name_prefix_api}-sg"
   description = "Security group for API server"
   vpc_id      = var.vpc_id
 
@@ -53,13 +53,13 @@ resource "aws_security_group" "api" {
   }
 
   tags = {
-    Name = "${local.name_prefix}-sg"
+    Name = "${local.name_prefix_api}-sg"
   }
 }
 
 # Redis security group
 resource "aws_security_group" "redis" {
-  name        = "${local.name_prefix}-redis-sg"
+  name        = "${local.name_prefix_api}-redis-sg"
   description = "Security group for Redis cluster"
   vpc_id      = var.vpc_id
 
@@ -80,6 +80,6 @@ resource "aws_security_group" "redis" {
   }
 
   tags = {
-    Name = "${local.name_prefix}-redis-sg"
+    Name = "${local.name_prefix_api}-redis-sg"
   }
 }

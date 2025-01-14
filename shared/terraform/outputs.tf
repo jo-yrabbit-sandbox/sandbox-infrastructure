@@ -13,3 +13,11 @@ output "redis_endpoint" {
   description = "Redis cluster endpoint"
   value       = module.api_server.redis_endpoint
 }
+
+output "bot_cluster_name" {
+  value = module.bot_platform.cluster_name
+}
+
+output "bot_ecr_repository_urls" {
+  value = module.bot_platform.ecr_repository_urls
+}

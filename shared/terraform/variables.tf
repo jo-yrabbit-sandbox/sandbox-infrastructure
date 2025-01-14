@@ -23,7 +23,7 @@ variable "allowed_ip" {
 }
 
 locals {
-  name_prefix = "${var.environment}-api"
+  name_prefix_api = "${var.environment}-api"
 }
 
 # variable "team_names" {

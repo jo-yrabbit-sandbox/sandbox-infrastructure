@@ -3,7 +3,10 @@ name: Deploy Infrastructure
 
 on:
   push:
-    branches: [ main ]
+    branches: [
+      main
+      add-bot-platmform  # TODO: remove me before merge to main
+    ]
     paths:
       - 'shared/**'
       - 'api-server/terraform/**'
