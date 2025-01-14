@@ -1,4 +1,4 @@
-# outputs.tf
+# shared/terraform/outputs.tf
 output "api_server_endpoint" {
   description = "Public DNS of the API server"
   value       = module.api_server.api_endpoint

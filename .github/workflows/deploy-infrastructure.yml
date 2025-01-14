@@ -37,6 +37,8 @@ jobs:
 
     - name: Terraform Plan
       working-directory: shared/terraform
+      env:
+        TF_VAR_allowed_ip: ${{ secrets.MY_IP_ADDRESS }}
       run: terraform plan -out=tfplan
     
     - name: Terraform Apply

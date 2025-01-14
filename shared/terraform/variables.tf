@@ -17,6 +17,11 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
+variable "allowed_ip" {
+  description = "IP address allowed for SSH access"
+  type        = string
+}
+
 locals {
   name_prefix = "${var.environment}-api"
 }

@@ -1,15 +1,24 @@
 # security.tf
+
 resource "aws_security_group" "api" {
   name        = "${local.name_prefix}-sg"
   description = "Security group for API server"
   vpc_id      = var.vpc_id
+
+  # Allow ICMP (pings only)
+  ingress {
+  from_port        = 8  # ICMP Echo Request
+  to_port          = 0  # ICMP Echo Request subtype
+  protocol         = "icmp"
+  cidr_blocks      = ["${var.allowed_ip}/32"]
+  }
 
   # SSH access for deployment
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/32"]
+    cidr_blocks = ["${var.allowed_ip}/32"]
   }
 
   # HTTP access

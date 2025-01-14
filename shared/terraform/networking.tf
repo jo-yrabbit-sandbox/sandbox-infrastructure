@@ -1,5 +1,4 @@
-# networking.tf
-
+# shared/terraform/networking.tf
 # VPC
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
@@ -147,37 +146,3 @@ resource "aws_route_table_association" "private_2" {
   subnet_id      = aws_subnet.private_2.id
   route_table_id = aws_route_table.private_2.id
 }
-
-# resource "aws_security_group" "api" {
-#   name        = "${var.environment}-api-sg"
-#   description = "Security group for API server"
-#   vpc_id      = aws_vpc.main.id
-
-#   # SSH access for deployment
-#   ingress {
-#     from_port   = 22
-#     to_port     = 22
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]  # Consider restricting this
-#   }
-
-#   # Your API port
-#   ingress {
-#     from_port   = 80
-#     to_port     = 80
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   tags = {
-#     Name        = "${var.environment}-api-sg"
-#     Environment = var.environment
-#   }
-# }

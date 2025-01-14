@@ -24,6 +24,11 @@ variable "environment" {
   type        = string
 }
 
+variable "allowed_ip" {
+  description = "IP address allowed for SSH access"
+  type        = string
+}
+
 locals {
   name_prefix = "${var.environment}-api"
 }

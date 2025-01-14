@@ -1,0 +1,49 @@
+## How to set up repo
+
+### Prerequisites
+
+* Install terraform
+    * Install [CLI here](https://developer.hashicorp.com/terraform/install)
+    * Install Terraform extension for VS Code
+
+
+### Create repo
+
+Create a new Github repo:
+* Set `my-repo-name` to `infrastructure`
+* Repo must be part of an organization `my-organization-name` (i.e. not a personal repo)
+    * Create an organization if you don't have one yet
+    * Existing personal repos can be transferred to an organization as long as you have `admin` privledges
+        * Go to your repo Settings > General > Danger Zone > Transfer ownership
+    * Set Workflow permissions in BOTH the organization AND repo
+        * Navigate to organization > Settings > Actions (left column) > General
+            * Select "Read and write permissions"
+            * Check "Allow GitHub Actions to create and approve pull requests"
+        * Do the same for your repo
+
+#### Architecture
+
+infrastructure/
+├── api-server/
+│   ├── terraform/
+│   │   ├── main.tf          # Your existing EC2 config
+│   │   └── variables.tf
+│   └── .github/workflows/
+│       └── deploy.yml       # Your existing API deployment
+│
+├── bot-platform/
+│   ├── terraform/
+│   │   ├── main.tf          # New multi-bot infrastructure
+│   │   └── variables.tf
+│   └── template/            # Bot template for teams
+│       └── .github/workflows/
+│           └── deploy.yml
+│
+├── shared/
+│   └── terraform/
+│       ├── main.tf          # Shared resources (VPC, subnets)
+│       └── outputs.tf       # Exported values for both services
+│
+└── terraform.tf             # Root config linking all modules
+
+#### 

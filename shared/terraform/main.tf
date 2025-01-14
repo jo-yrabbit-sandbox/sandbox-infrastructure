@@ -36,6 +36,7 @@ module "api_server" {
   private_subnet_ids   = [aws_subnet.private_1.id, aws_subnet.private_2.id]
   private_subnet_cidrs = [aws_subnet.private_1.cidr_block, aws_subnet.private_2.cidr_block]
   environment          = var.environment
+  allowed_ip           = var.allowed_ip
 }
 
 # module "bot_platform" {
