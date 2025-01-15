@@ -38,7 +38,7 @@ jobs:
       - name: Update Telegram Token in SSM
         run: |
           aws ssm put-parameter \
-            --name "/${inputs.environment}/bots/${{ github.event.repository.name }}/telegram-token" \
+            --name "/${{ inputs.environment }}/bots/${{ github.event.repository.name }}/telegram-token" \
             --value "${{ secrets.TELEGRAM_TOKEN }}" \
             --type "SecureString" \
             --overwrite
