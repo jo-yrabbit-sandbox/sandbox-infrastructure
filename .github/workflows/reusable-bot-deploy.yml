@@ -7,8 +7,8 @@ on:
         required: true
         type: string
     secrets:
-      TELEGRAM_TOKEN:
-        required: true
+      # TELEGRAM_TOKEN:
+      #   required: true
       AWS_REGION:      # Organization-level secret
         required: true
       AWS_ACCOUNT_ID:  # Organization-level secret
