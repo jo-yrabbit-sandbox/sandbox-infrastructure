@@ -7,15 +7,16 @@ on:
         required: true
         type: string
     secrets:
-      # TELEGRAM_TOKEN:
-      #   required: true
-      AWS_REGION:      # Organization-level secret
+      TELEGRAM_TOKEN:
         required: true
-      AWS_ACCOUNT_ID:  # Organization-level secret
-        required: true
+
 permissions:
   id-token: write
   contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:
   deploy:
@@ -30,8 +31,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/bot-deployment-${{ github.event.repository.name }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/bot-deployment-${{ github.event.repository.name }}
+          aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 900
 
       - name: Login to Amazon ECR
