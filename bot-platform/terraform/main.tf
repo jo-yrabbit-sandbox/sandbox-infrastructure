@@ -12,7 +12,7 @@ resource "aws_ecs_cluster" "bot_cluster" {
 
 # ECR Repository for each bot
 resource "aws_ecr_repository" "bot_repos" {
-  for_each = toset(var.bot_names)
+  for_each = var.bot_configs
 
   name = "${var.environment}-${each.key}"
 

@@ -1,4 +1,5 @@
 # Outputs to be used by parent module
+# api-server/terraform/outputs.tf
 
 # For SSH access (without port)
 output "api_endpoint" {

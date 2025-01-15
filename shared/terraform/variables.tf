@@ -23,6 +23,12 @@ variable "allowed_ip" {
   default     = "0.0.0.0"
 }
 
+variable "github_org" {
+  description = "GitHub organization name"
+  type        = string
+  default     = "tee-gee-bots"
+}
+
 locals {
   name_prefix_api = "${var.environment}-api"
 }
