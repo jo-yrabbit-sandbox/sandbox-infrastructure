@@ -19,6 +19,15 @@ env:
   AWS_ACCOUNT_ID: "537124940748"
 
 jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug Repository Info
+        run: |
+          echo "Current repository: ${{ github.repository }}"
+          echo "Parent repository variable: ${{ vars.THIS_REPO }}"
+          echo "Condition check: ${{ github.repository != vars.THIS_REPO }}"
+
   deploy:
     if: github.repository != vars.THIS_REPO
     runs-on: ubuntu-latest
