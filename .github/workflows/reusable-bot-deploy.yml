@@ -57,15 +57,28 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Update ECS service
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ inputs.environment }}-${{ github.event.repository.name }}
+          IMAGE_TAG: 0325e315b8a3dfa824dd42b2cfa9f9d6ae9a6410
         run: |
+          # Retrieve current task definition
+          aws ecs describe-task-definition \
+            --task-definition ${{ inputs.environment }}-${{ github.event.repository.name }} \
+            --query 'taskDefinition' \
+            > task-definition.json
+      
+          # Update image reference with specific tag
+          jq --arg image "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            '.containerDefinitions[0].image = $image' \
+            task-definition.json > updated-task-definition.json
+      
+          # Register new task definition
+          aws ecs register-task-definition \
+            --cli-input-json file://updated-task-definition.json
+      
+          # Update service
           aws ecs update-service \
             --cluster ${{ inputs.environment }}-telegram-bot-cluster \
             --service ${{ inputs.environment }}-${{ github.event.repository.name }} \
-            --force-new-deployment \
-            --task-definition $(aws ecs describe-task-definition \
-            --task-definition ${{ inputs.environment }}-${{ github.event.repository.name }} \
-            --query 'taskDefinition.family' \
-            --output text):$(aws ecs describe-task-definition \
-              --task-definition ${{ inputs.environment }}-${{ github.event.repository.name }} \
-              --query 'taskDefinition.revision' \
-              --output text)
+            --force-new-deployment
