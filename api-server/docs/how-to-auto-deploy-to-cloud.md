@@ -180,11 +180,11 @@ You will need:
 
 #### Set your secrets in GitHub repo
 1. Go to your repo in Github > Settings > (left column) Secrets and variables > Actions
-2. Add the following New repository secrets:
+2. Add the following New organization level secrets
     * Set `AWS_REGION` of EC2 and ElastiCache instances (should be in same region)
+3. Add the following New repository secrets:
     * Set `AWS_ROLE_ARN` associated with the previously created role `my-repo-name-deployer`
     * Set `REDIS_HOST` to your ElastiCache endpoint
-    * Set `EC2_INSTANCE_ID` of your EC2 instance
     * Set `EC2_USERNAME` set to default (usually `ubuntu`)
     * Set `EC2_SSH_KEY` to the contents of the private key file created with EC2 instance
 
