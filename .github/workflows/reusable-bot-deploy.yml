@@ -10,7 +10,7 @@ on:
       TELEGRAM_TOKEN:
         required: true
 
-permissions:a6
+permissions:
   id-token: write
   contents: read
 
