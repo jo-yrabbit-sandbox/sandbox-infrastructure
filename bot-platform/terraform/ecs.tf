@@ -5,7 +5,7 @@
 
 # Task definition template for bots
 resource "aws_ecs_task_definition" "bot_task" {
-  for_each = toset(var.bot_names)
+  for_each = var.bot_configs
   
   family                   = "${var.environment}-${each.key}"
   requires_compatibilities = ["FARGATE"]
@@ -23,7 +23,7 @@ resource "aws_ecs_task_definition" "bot_task" {
       environment = [
         {
           name  = "API_ENDPOINT"
-          value = var.api_endpoint
+          value = "http://${var.api_url}"
         }
       ]
 
@@ -48,7 +48,7 @@ resource "aws_ecs_task_definition" "bot_task" {
 
 # CloudWatch Log Groups for each bot
 resource "aws_cloudwatch_log_group" "bot_logs" {
-  for_each = toset(var.bot_names)
+  for_each = var.bot_configs
   
   name              = "/ecs/${var.environment}/${each.key}"
   retention_in_days = 30
@@ -56,7 +56,7 @@ resource "aws_cloudwatch_log_group" "bot_logs" {
 
 # SSM Parameters for securely storing Telegram bot tokens
 resource "aws_ssm_parameter" "bot_tokens" {
-  for_each = toset(var.bot_names)
+  for_each = var.bot_configs
   
   name  = "/${var.environment}/bots/${each.key}/telegram-token"
   type  = "SecureString"
@@ -68,14 +68,18 @@ resource "aws_ssm_parameter" "bot_tokens" {
 }
 
 # ECS Service for each bot, keeps it running
+data "aws_iam_role" "ecs" {
+  name = "AWSServiceRoleForECS"
+}
 resource "aws_ecs_service" "bot_service" {
-  for_each = toset(var.bot_names)
+  for_each = var.bot_configs
   
   name            = "${var.environment}-${each.key}"
   cluster         = aws_ecs_cluster.bot_cluster.id
   task_definition = aws_ecs_task_definition.bot_task[each.key].arn
   desired_count   = 1  # Keep one instance running
   launch_type     = "FARGATE"
+  depends_on = [data.aws_iam_role.ecs]
 
   network_configuration {
     subnets         = var.private_subnet_ids

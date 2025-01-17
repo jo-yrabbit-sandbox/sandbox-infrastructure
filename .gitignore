@@ -1,5 +1,8 @@
 *__pycache__*
 *.pem
+*.env
+*venv/
+api-server/logs/
 
 # Local .terraform directories
 **/.terraform/*

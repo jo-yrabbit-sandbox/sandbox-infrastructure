@@ -1,4 +1,6 @@
 # Variables from parent module
+# api-server/terraform/variables.tf
+
 variable "vpc_id" {
   description = "VPC ID from shared module"
   type        = string

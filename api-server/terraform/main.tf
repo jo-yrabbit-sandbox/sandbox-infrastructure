@@ -24,7 +24,7 @@ resource "aws_instance" "api_server" {
   vpc_security_group_ids     = [aws_security_group.api.id]
 
   root_block_device {
-    volume_size = 20  # Adjust based on your needs
+    volume_size = 8  # Adjust based on your needs
   }
 
   tags = {

@@ -1,4 +1,6 @@
+# Variables from parent module
 # bot-platform/terraform/variables.tf
+
 variable "environment" {
   description = "Environment name"
   type        = string
@@ -19,13 +21,23 @@ variable "private_subnet_ids" {
   type        = list(string)
 }
 
-variable "bot_names" {
-  description = "List of bot names to create repositories for"
-  type        = list(string)
-  default     = ["test-bot"]  # Default for testing
+variable "api_url" {
+  description = "Full API URL including port"
+  type        = string
 }
 
-variable "api_endpoint" {
-  description = "API Server endpoint with port"
-  type        = string
+variable "bot_configs" {
+  description = "Map of bot configurations including their GitHub organizations"
+  type = map(object({
+    github_org = string
+  }))
+  # Example:
+  # {
+  #   "test-bot" = {
+  #     github_org = "test-org"
+  #   }
+  #   "another-bot" = {
+  #     github_org = "another-org"
+  #   }
+  # }
 }
