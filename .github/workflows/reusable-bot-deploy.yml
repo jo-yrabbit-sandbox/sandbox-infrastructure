@@ -84,7 +84,7 @@ jobs:
                     requiresCompatibilities, 
                     cpu, 
                     memory, 
-                    tags: []
+                    tags: (.tags | select(. != null and length > 0))
                   }' > task-def.json
 
           # Update image reference
