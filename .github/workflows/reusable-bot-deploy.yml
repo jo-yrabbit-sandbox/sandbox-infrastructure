@@ -72,7 +72,7 @@ jobs:
           # Retrieve current task definition
           aws ecs describe-task-definition \
             --task-definition ${{ inputs.environment }}-${{ github.event.repository.name }} \
-            --query 'taskDefinition.{family: family, taskRoleArn: taskRoleArn, executionRoleArn: executionRoleArn, networkMode: networkMode, containerDefinitions: containerDefinitions, volumes: volumes, placementConstraints: placementConstraints, requiresCompatibilities: requiresCompatibilities, cpu: cpu, memory: memory, tags: tags}' > task-def.json
+            | jq '.taskDefinition | {family, taskRoleArn, executionRoleArn, networkMode, containerDefinitions, volumes, placementConstraints, requiresCompatibilities, cpu, memory, tags}' > task-def.json
       
           # Update image reference
           jq --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
