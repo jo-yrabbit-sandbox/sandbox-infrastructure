@@ -128,10 +128,7 @@ resource "aws_iam_role_policy" "bot_deployment_policies" {
       {
         Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken",
-          "ecs:DescribeTaskDefinition",
-          "iam:PassRole",
-          "ecs:RegisterTaskDefinition"
+          "ecr:GetAuthorizationToken"
         ]
         Resource = "*"
       },
