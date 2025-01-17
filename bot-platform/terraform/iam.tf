@@ -130,7 +130,8 @@ resource "aws_iam_role_policy" "bot_deployment_policies" {
         Action = [
           "ecr:GetAuthorizationToken",
           "ecs:DescribeTaskDefinition",
-          "iam:PassRole"
+          "iam:PassRole",
+          "ecs:RegisterTaskDefinition"
         ]
         Resource = "*"
       },
