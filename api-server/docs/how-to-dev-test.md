@@ -101,9 +101,9 @@ docker-compose down
   * For both test messages, `cat tests/test_message_<#>.json` to confirm content
 ```json
 {
-  "bot_id": "test_bot_id",
+  "bot_id": "test-bot",
   "message": {
-    "state": "test_state",
+    "state": "READY",
     "text": "test_text_<#>",
     "timestamp": "test_timestamp_<#>"
     }
@@ -125,12 +125,12 @@ curl -0 -v POST <url> \
 ```
 
 2. Get latest message should return second message, not first
-  * Make `GET` request with url: http://localhost:5000/api/v1/messages/latest?bot_id=test_bot_id&state=test_state
+  * Make `GET` request with url: http://localhost:5000/api/v1/messages/latest?bot_id=test-bot&state=test_state
 ```sh
 curl -X GET "<url>"
 ```
   * Expected response:
 ```json
 // Should be returning second stored message (test_text_2, test_timestamp_2), not the first
-{"data":"{'bot_id': 'test_bot_id', 'state': 'test_state', 'text': 'test_text_2', 'timestamp': 'test_timestamp_2'}","error":"","status":"success"}
+{"data":"{'bot_id': 'test-bot', 'state': 'test_state', 'text': 'test_text_2', 'timestamp': 'test_timestamp_2'}","error":"","status":"success"}
 ```

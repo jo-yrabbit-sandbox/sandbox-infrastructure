@@ -23,7 +23,7 @@ resource "aws_ecs_task_definition" "bot_task" {
       environment = [
         {
           name  = "API_ENDPOINT"
-          value = var.api_url
+          value = "http://${var.api_url}"
         }
       ]
 

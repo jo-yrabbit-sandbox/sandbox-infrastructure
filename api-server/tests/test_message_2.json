@@ -1,7 +1,7 @@
 {
-    "bot_id": "test_bot_id",
+    "bot_id": "test-bot",
     "message": {
-      "state": "test_state",
+      "state": "READY",
       "text": "test_text_2",
       "timestamp": "test_timestamp_2"
       }

@@ -234,7 +234,7 @@ curl -X GET <url>
 ```
   * Expected response:
 ```json
-{"message":"{'bot_id': 'test_bot_id', 'state': 'test_state', 'text': 'test_text_2', 'timestamp': 'test_timestamp_2'}"}
+{"message":"{'bot_id': 'test-bot', 'state': 'test_state', 'text': 'test_text_2', 'timestamp': 'test_timestamp_2'}"}
 ```
 * If no messages have been stored in redis, error is expected because redis database has nothing stored in it at this time
 ```json
