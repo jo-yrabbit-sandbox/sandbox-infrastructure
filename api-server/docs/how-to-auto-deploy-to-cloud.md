@@ -177,6 +177,7 @@ You will need:
 * `REDIS_HOST` from `.env`
 * `EC2_INSTANCE_ID` from `.env`
 * `EC2_USERNAME` from `.env`
+* `THIS_REPO` being `this-repo-org/this-repo-name`
 
 #### Set your secrets in GitHub repo
 1. Go to your repo in Github > Settings > (left column) Secrets and variables > Actions
@@ -187,6 +188,7 @@ You will need:
     * Set `REDIS_HOST` to your ElastiCache endpoint
     * Set `EC2_USERNAME` set to default (usually `ubuntu`)
     * Set `EC2_SSH_KEY` to the contents of the private key file created with EC2 instance
+    * Set `THIS_REPO` to `this-repo-org/this-repo-name`
 
 Create a new workflow file
 ```sh
