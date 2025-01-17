@@ -61,4 +61,11 @@ jobs:
           aws ecs update-service \
             --cluster ${{ inputs.environment }}-telegram-bot-cluster \
             --service ${{ inputs.environment }}-${{ github.event.repository.name }} \
-            --force-new-deployment
+            --force-new-deployment \
+            --task-definition $(aws ecs describe-task-definition \
+            --task-definition ${{ inputs.environment }}-${{ github.event.repository.name }} \
+            --query 'taskDefinition.family' \
+            --output text):$(aws ecs describe-task-definition \
+              --task-definition ${{ inputs.environment }}-${{ github.event.repository.name }} \
+              --query 'taskDefinition.revision' \
+              --output text)
