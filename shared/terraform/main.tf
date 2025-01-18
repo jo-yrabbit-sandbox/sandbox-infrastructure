@@ -54,6 +54,9 @@ module "bot_platform" {
     "fakeclaude" = {
       github_org = "tee-gee-bots"
     }
+    "wishengine" = {
+      github_org = "jo-yrabbit-sandbox"
+    }
     # "another-bot" = {
     #   github_org = "another-org"
     # }
