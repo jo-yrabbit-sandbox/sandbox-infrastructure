@@ -1,10 +1,12 @@
+import os
+import time
+from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # TODO: Enable auth
+
 import logging
 from logging.handlers import RotatingFileHandler
-import os
-import time
 
 from api.redis_handler import RedisHandler
 
@@ -110,11 +112,25 @@ def debug_redis():
 
 ### Messages
 API_PREFIX_MESSAGES = f'{API_PREFIX}/messages'
+TIMESTAMP_FORMAT='%Y-%m-%d_%H:%M:%S'
 
-def get_timestamp(input):
+def get_timestamp(input) -> int:
+    """Return timestamp as seconds since epoch (int)"""
     if 'test' in str(input):
-        return time.time()
-    return input
+        return int(time.time())
+    elif type(input) is int:
+        return input
+    elif type(input) is float:
+        return int(input)
+    elif type(input) is str:
+        try:
+            d=datetime.strptime(input, TIMESTAMP_FORMAT)
+            return int(d.timestamp())
+        except Exception as e:
+            app.logger.warning(f'Failed to parse timestamp \'{input}\'. Defaulting to current timestamp')
+    else:
+        app.logger.warning(f'Invalid timestamp input \'{input}\'. Defaulting to current timestamp')
+    return int(time.time())
 
 # TODO: Move this to redis_handler
 def get_query(this_request):

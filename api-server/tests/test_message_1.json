@@ -3,6 +3,6 @@
     "message": {
       "state": "READY",
       "text": "test_text_1",
-      "timestamp": "test_timestamp_1"
+      "timestamp": "2025-01-01_00:00:00"
       }
 }
