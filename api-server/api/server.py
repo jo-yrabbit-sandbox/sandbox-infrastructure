@@ -34,7 +34,7 @@ CORS(app, resources={
 })
 
 # Configure logging
-log_level = os.getenv('LOG_LEVEL', 'DEBUG')
+log_level = os.getenv('LOG_LEVEL', 'INFO')
 numeric_level = getattr(logging, log_level.upper(), logging.INFO)
 os.makedirs('logs', exist_ok=True) # Ensure logs directory exists
 # Set up file handler
