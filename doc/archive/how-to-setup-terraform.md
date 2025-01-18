@@ -22,6 +22,7 @@ infrastructure/
 └── .github/
     └── workflows/
         ├── deploy-infrastructure.yml
+        ├── deploy-infrastructure.yml
         └── deploy-api-server.yml
 ```
 

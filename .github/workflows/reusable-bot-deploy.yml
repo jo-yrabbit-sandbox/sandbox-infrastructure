@@ -1,5 +1,4 @@
 name: Reusable Bot Deploy
-
 on:
   workflow_call:
     inputs:

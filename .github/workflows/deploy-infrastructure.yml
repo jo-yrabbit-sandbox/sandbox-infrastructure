@@ -1,5 +1,5 @@
 # infrastructure/.github/workflows/deploy-infrastructure.yml
-name: Deploy Infrastructure
+name: Deploy Infrastructure to AWS
 
 on:
   push:

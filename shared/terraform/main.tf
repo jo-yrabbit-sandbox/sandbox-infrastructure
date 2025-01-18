@@ -50,6 +50,9 @@ module "bot_platform" {
   bot_configs = {
     "test-bot" = {
       github_org = "tee-gee-bots"
+    },
+    "fakeclaude" = {
+      github_org = "tee-gee-bots"
     }
     # "another-bot" = {
     #   github_org = "another-org"
