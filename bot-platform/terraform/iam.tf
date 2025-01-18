@@ -162,7 +162,7 @@ resource "aws_iam_role_policy" "bot_deployment_policies" {
           "ssm:PutParameter"
         ],
         "Resource": [
-          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${var.environment}/${each.key}/*"
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${var.environment}/bots/${each.key}/*"
         ]
       }
     ]
