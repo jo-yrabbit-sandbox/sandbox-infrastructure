@@ -34,7 +34,7 @@ CORS(app, resources={
 })
 
 # Configure logging
-log_level = os.getenv('LOG_LEVEL', 'INFO')
+log_level = os.getenv('LOG_LEVEL', 'DEBUG')
 numeric_level = getattr(logging, log_level.upper(), logging.INFO)
 os.makedirs('logs', exist_ok=True) # Ensure logs directory exists
 # Set up file handler
@@ -220,6 +220,7 @@ def get_messages():
 
 @app.route(API_PREFIX_MESSAGES, methods=['POST'])  # TODO: Add following decorators later: @require_api_key @limiter.limit("30 per minute")
 def store_message():
+    app.logger.debug('Storing message...')
     def validate(input, required_keys) -> str:
         if type(required_keys) is not list:
             return False, f'Ivalid argument - `required_keys` must be passed in as list, but got {type(required_keys)}'

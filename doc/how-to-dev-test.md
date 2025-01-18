@@ -89,9 +89,8 @@ curl localhost:5000/health  # Checks connection to redis as well
 curl localhost:5000/debug-redis  # Dump redis configurations
 ```
 
-5. 
-6. Teardown
-3. Stop your containers
+5. Teardown
+6. Stop your containers
 ```sh
 docker-compose down
 ```
@@ -133,4 +132,20 @@ curl -X GET "<url>"
 ```json
 // Should be returning second stored message (test_text_2, test_timestamp_2), not the first
 {"data":"{'bot_id': 'test-bot', 'state': 'test_state', 'text': 'test_text_2', 'timestamp': 'test_timestamp_2'}","error":"","status":"success"}
+```
+
+## Troubleshooting
+
+If testing deployed server, you will need to ssh into the EC2 instance to view the logs
+
+* SSH into EC2 and check systemd logs:
+```sh
+# Connect to EC2
+ssh -i your-key.pem ubuntu@your-ec2-dns
+
+# View API server logs
+sudo journalctl -u api-server -f
+
+# Look at log dumps
+tail -f ~/api-server/current/api-server/logs/*
 ```

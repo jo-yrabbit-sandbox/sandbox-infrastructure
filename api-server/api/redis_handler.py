@@ -229,7 +229,5 @@ class RedisHandler():
             remove_list = all_message_ids[:n - self.MAX_MESSAGES]
             self.remove_messages(remove_list)
 
-            
-
         self.logger.info(f'Stored {target}')
         return message_id
