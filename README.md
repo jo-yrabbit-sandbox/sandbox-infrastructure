@@ -62,22 +62,31 @@ module "bot_platform" {
 ```
 3. Commit the change to deploy the new infrastructure
 
-## Todo
+## Progress
 
-Idea dump:
-* Onboard multiple bots
-    * Bot 1: Produce input messages on demand (e.g. Present real-user members with `Would you like to... Y/N` question)
-    * Bot 2: Monitor real-user replies to input message (e.g. Grant the wish if `Y` and present link to updated website)
-* Improve onboarding checklist for both bot developer and infrastructure admin
-* Integrate with front-end website
-    * A simple website that polls api-server for updated information
-    * Displays content based on updated information (text or image from an image bank)
-* Improve/swap front-end for better, more creative experience
-    * Doesn't have to be website - twitter bot?
-* Improve server design
-    * Rate limit requests from clients (bots and website)
-    * CORS for website
-    * Data retention
-    * Reduce infrastructure cost
-    * Scalable in the right ways?
-    * Sandbox vs Prodction
+### Current implementation
+* Easy to onboard multiple bot developers using `tee-gee-bots/test-bot` as template repo. The how-to checklists in `README.md` has been tested for new repos created both in-/out-side organization
+* Created a couple of new test bots for testing:
+    * Bot 1: Produces input messages on demand (e.g. Present real-user members with `Would you like to... Y/N` question)
+    * Bot 2: Monitors real-user replies to input message
+        * Bot reply content is contingent on `Y`/`N`
+        * Reply gets stored into redis backend
+        * Old replies are indexed by response state (Y/N) and can be `/fetched`
+
+### Todo
+* API server (backend) improvements:
+    * Add Postgresql client manager between redis backend and api-server. Want to make db searchable, want to better visualize content of stored messages/indexes
+    * Come up with better data schema/api routes that support Postgresql querying - update existing bots and bot template.
+    * Cloudfrong logging for api-server too
+    * CORS for frontend website - how to do it if using widget? Something about api tokens in header... (need to study)
+    * Rate limit requests from clients (from bots and from front-end)
+    * Data retention policy, ensure anonymization
+    * Reduce infrastructure cost, scalable?
+    * Transition to maintain parallel Sandbox vs Prodction environments
+* Implement visualization (frontend): **End to end goal** of the project is for Bot/human interaction to be visible on some fronten. Maybe bots should present users with a link to a frontend website/tweet that shows their impact
+    * Rewrite sandbox-website in React to poll api-server for updated input, or
+    * A widget is even better for distribution - can be plugged in to existing websites
+    * A tweet might be more interesting
+    * More run if we display different content types based on api-server response. For example, show images from an image bank stored on separate s3 instance, or a dashboard of some sort. Need more creative input
+* Bot bugs:
+    * Wishengine bot reply gets cut off on comma/punctuation
