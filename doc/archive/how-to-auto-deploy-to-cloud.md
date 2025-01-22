@@ -1,9 +1,12 @@
 ## How to set up auto deployment
 
-Here, we use "Github actions" to automatically deploy new versions of the website whenever there is a new commit.
-Since this website is designed to be deployed to an s3 bucket, we will create AWS IAM roles with correct policy settings that will enable the automated deployment job.
+This is an outdated how-to for manually setting up "Github actions" for automatic deployment of the API server of the infrastructure only, in standalone.
+It does not integrate the Bot platform, and has no terraform management.
 
-### Prerequisites
+This how-to is obsolete because we now use terraform to manage all AWS resources and deployment workflow.
+However, this doc may help future troubleshooting/prototyping efforts, so we will leave it here, along with other archived how-tos.
+
+### Bootstrapping steps
 
 #### Github settings
 * The repo `my-repo-name` must be part of an organization `my-organization-name` (i.e. not a personal repo)
