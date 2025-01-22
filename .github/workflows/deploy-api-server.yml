@@ -53,6 +53,7 @@ jobs:
           echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
 
           REDIS_HOST=$(terraform output -raw redis_endpoint)
+          echo "Got REDIS_HOST: $REDIS_HOST"
           echo "redis_host=$REDIS_HOST" >> $GITHUB_ENV
         id: terraform
 
