@@ -30,11 +30,6 @@ jobs:
           terraform_version: "1.1.7"
           terraform_wrapper: false
 
-      - name: Debug Directory
-        run: |
-          echo "Contents of shared/terraform:"
-          ls -la shared/terraform/
-
       - name: Terraform Init
         working-directory: shared/terraform
         run: |
@@ -56,6 +51,9 @@ jobs:
           EC2_DNS=$(terraform output -raw api_server_endpoint)
           echo "Got EC2 DNS: $EC2_DNS"
           echo "ec2_dns=$EC2_DNS" >> $GITHUB_OUTPUT
+
+          REDIS_HOST=$(terraform output -raw redis_endpoint)
+          echo "redis_host=$REDIS_HOST" >> $GITHUB_ENV
         id: terraform
 
       - name: Update Security Group
@@ -91,8 +89,8 @@ jobs:
 
       - name: Deploy to EC2
         env:
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
           GITHUB_BRANCH: ${{ github.ref_name }}
+          REDIS_HOST: ${{ env.redis_host }}
         run: |
           ssh -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USERNAME }}@${{ steps.terraform.outputs.ec2_dns }} \
             "REDIS_HOST=$REDIS_HOST bash -s" < api-server/scripts/deploy.sh "$GITHUB_BRANCH"
