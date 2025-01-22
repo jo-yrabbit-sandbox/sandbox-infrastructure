@@ -448,7 +448,7 @@ Using the above Github OIDC provider, create two roles for your two deployment j
 				"ec2:RevokeSecurityGroupIngress",
 				"ec2:AuthorizeSecurityGroupIngress"
 			],
-			"Resource": "arn:aws:ec2:*:*:security-group/sg-abc123"
+			"Resource": "arn:aws:ec2:*:*:security-group/*"
 		},
 		{
 			"Sid": "VisualEditor2",
@@ -457,6 +457,32 @@ Using the above Github OIDC provider, create two roles for your two deployment j
 			"Resource": "*"
 		}
 	]
+}
+```
+  - TerrformStateManagement-limited (For accessing REDIS_HOST output from terraform state file)
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::jolly-sandbox-terraform-state",
+                "arn:aws:s3:::jolly-sandbox-terraform-state/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:GetItem"
+            ],
+            "Resource": "arn:aws:dynamodb:*:*:table/terraform-state-locks"
+        }
+    ]
 }
 ```
 
