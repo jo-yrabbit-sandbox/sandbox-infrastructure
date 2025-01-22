@@ -1,5 +1,11 @@
 ## How to deploy to cloud
 
+This is an outdated how-to for manually setting up AWS resources for API server portion of the infrastructure only, in standalone.
+It does not integrate the Bot platform, and has no terraform management.
+
+This how-to is obsolete because we now use terraform to manage all AWS resources and deployment workflow.
+However, this doc may help future troubleshooting/prototyping efforts, so we will leave it here, along with other archived how-tos.
+
 ### Overview
 
 #### Create a Redis cluster in ElastiCache
