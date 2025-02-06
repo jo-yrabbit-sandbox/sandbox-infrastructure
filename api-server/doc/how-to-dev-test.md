@@ -7,7 +7,7 @@ During development, you may want to run some basic tests. This how-to explains h
   * Test that your Flask application (`api-server`) is correctly connected to the backend database (`redis`)
 
 ### Test `api-server` in standalone (without `redis`)
-Below are the two ways explained here:
+Below are the two ways explained here:../doc/how-to-dev-test.md
   * (Option 1) Run the Flask application directly with python
   * (Option 2) Run it in a container (e.g. test your Dockerfile)
 
@@ -66,6 +66,7 @@ Here we will describe how to locally host the Flask application and redis backen
 #### Option 1: How to run your containers using docker compose
 This is for testing your `docker-compose.yml`. We assume that you have the following already working:
 * `Dockerfile` for `api-server` exists and runs in standalone
+* `Docker Desktop` is running in the background
 
 1. Navigate to parent directory containing your `docker-compose.yml`, `Dockerfile`, `.env` files
 2. Confirm * `.env` file has `REDIS_HOST=redis` (matching whatever you specified in `docker-compose.yml`)
@@ -78,7 +79,7 @@ echo $REDIS_HOST  # Should return redis
 docker-compose up
 
 # If you've changed source code
-docker compose up --build --force-recreate
+docker-compose up --build --force-recreate
 ```
 4. Confirm routes `hello` and `health` are both healthy
 ```sh

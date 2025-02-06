@@ -74,19 +74,39 @@ module "bot_platform" {
         * Old replies are indexed by response state (Y/N) and can be `/fetched`
 
 ### Todo
+
+* Architecture changes (rewriting server.py and redis_handler.py)
+    * WIP: RedisHandler for basic CRUD operations (Done: Store, Next: Get, Delete, Deduplicate)
+    * Add: SearchStore, MaintenanceStore
+* Data schema
+    * Done: Text
+    * Add: Image
+    * Design question: Should API return content also be structured?
+* Structured logging
+    * Done: App-level logs
+    * Add: Redis operations
+
+#### Goals
+* Set up bots that "talk to each other" and visualize their interactions on a dashboard
 * API server (backend) improvements:
-    * Add Postgresql client manager between redis backend and api-server. Want to make db searchable, want to better visualize content of stored messages/indexes
-    * Come up with better data schema/api routes that support Postgresql querying - update existing bots and bot template.
-    * Cloudfrong logging for api-server too
+    * Come up with consistent data schema
+    * Add redis storage integrity checks
+    * Structured logs for visualization of trends over time
+    * Update existing bots and bot template
+    * Cloudfront logging for api-server
+* Frontend:
+    * Show redis stored content on a dashboard
+    * Show trends over time
+
+* Tabled ideas, notes dump:
     * CORS for frontend website - how to do it if using widget? Something about api tokens in header... (need to study)
     * Rate limit requests from clients (from bots and from front-end)
     * Data retention policy, ensure anonymization
     * Reduce infrastructure cost, scalable?
     * Transition to maintain parallel Sandbox vs Prodction environments
-* Implement visualization (frontend): **End to end goal** of the project is for Bot/human interaction to be visible on some fronten. Maybe bots should present users with a link to a frontend website/tweet that shows their impact
-    * Rewrite sandbox-website in React to poll api-server for updated input, or
-    * A widget is even better for distribution - can be plugged in to existing websites
-    * A tweet might be more interesting
-    * More run if we display different content types based on api-server response. For example, show images from an image bank stored on separate s3 instance, or a dashboard of some sort. Need more creative input
-* Bot bugs:
-    * Wishengine bot reply gets cut off on comma/punctuation
+    * Think about visualization (front-end). Visualize bot/human interaction somehow...
+        * Bots reply with link to a website/tweet
+        * Rewrite sandbox-website in React to poll api-server for updated input
+        * A widget is even better for distribution - can be plugged in to existing websites
+        * A tweet might be more interesting
+        * More run if we display different content types based on api-server response. For example, show images from an image bank stored on separate s3 instance, or a dashboard of some sort. Need more creative input

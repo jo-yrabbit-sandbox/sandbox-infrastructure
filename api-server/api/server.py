@@ -1,14 +1,15 @@
+import logging
 import os
 import time
 from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # TODO: Enable auth
-
-import logging
-from logging.handlers import RotatingFileHandler
+import hashlib
 
 from api.redis_handler import RedisHandler
+from structured_logging.logging_setup import setup_structured_logging
+from schemas.message import MessageType, Message
 
 # Load environment variables if ../.env exists
 dotenv = os.path.isfile(os.path.join(
@@ -20,6 +21,8 @@ if os.path.isfile(dotenv):
 # Note: If you change attribute name `app` for this flask server,
 # make sure you edit the Dockerfile and gunicorn command arg too
 app = Flask(__name__)
+setup_structured_logging(app, service_name='app', log_level=os.getenv('LOG_LEVEL', 'INFO'), log_dir='logs')
+app.logger.info('API server startup')
 
 # Note: For debugging, replace with CORS(app)
 CORS(app, resources={
@@ -33,29 +36,14 @@ CORS(app, resources={
     }
 })
 
-# Configure logging
-log_level = os.getenv('LOG_LEVEL', 'INFO')
-numeric_level = getattr(logging, log_level.upper(), logging.INFO)
-os.makedirs('logs', exist_ok=True) # Ensure logs directory exists
-# Set up file handler
-file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-file_handler.setLevel(numeric_level)
-# Configure app logger
-app.logger.addHandler(file_handler)
-app.logger.setLevel(numeric_level)
-app.logger.info('API server startup')
-
 # Configure redis
 try:
-    redis_handler = RedisHandler(logger=app.logger)
-    redis_handler.start(redis_host=os.getenv('REDIS_HOST', 'localhost'),
-                        redis_port=int(os.getenv('REDIS_PORT', 6379)),
-                        redis_password=os.getenv('REDIS_PASSWORD'))
-    app.logger.info('Connected to redis')
+    redis_handler = RedisHandler(app.logger,
+                                 redis_host=os.getenv('REDIS_HOST', 'localhost'),
+                                 redis_port=int(os.getenv('REDIS_PORT', 6379)),
+                                 redis_password=os.getenv('REDIS_PASSWORD'))
 except Exception as e:
-    app.logger.info(f'Failed to connect to redis - {str(e)}')
-
+    app.logger.error(f'Failed to connect to redis - {str(e)}')
 
 ####
 # Routes
@@ -74,40 +62,39 @@ def get_schema(status='', error='') -> dict:
 #### Health checks
 @app.route('/hello', methods=['GET'])
 def hello():
-    app.logger.debug(f'Received request: {request.endpoint}... hello!')
+    app.logger.debug(f'Received request: `{request.endpoint}` ..., hello!')
     return jsonify(get_schema(status='healthy'))
 
 @app.route('/health', methods=['GET'])
 def health():
-    app.logger.debug(f'Received request: {request.endpoint} with args: {dict(request.args)}')
-    d = get_schema(status='unhealthy')
-    d.update({'redis': ''})
-
-    if not redis_handler.redis_client:
-        app.logger.error(redis_handler.INIT_ERROR)
-        d.update({'redis' : 'not initialized'})
-        d.update({'error' : redis_handler.INIT_ERROR})
-        return jsonify(d)
+    app.logger.debug(f'Received request: `{request.endpoint}`')
 
     try:
-        if redis_handler.redis_client.ping():
-            d.update({'status': 'healthy'})
+        if not redis_handler.redis_client.ping():
+            raise Exception()
+        d = get_schema(status='healthy')
         d.update({'redis': 'connected'})
         return jsonify(d), 200
     except Exception as e:
         error = 'Failed to ping redis client - `/debug-redis` for more info'
         app.logger.error(error)
+        d = get_schema(status='unhealthy', error=error)
         d.update({'redis' : f'not connected - {str(e)}'})
-        d.update({'error' : error})
         return jsonify(d)
 
 @app.route('/debug-redis', methods=['GET'])
 def debug_redis():
-    app.logger.debug(f'Received request: {request.endpoint}')
-    d = get_schema()
-    d.update({'redis_host': os.getenv('REDIS_HOST', 'localhost')})
-    d.update({'environment': str(dict(os.environ))})
-    d.update({'redis_client': str(redis_handler.redis_client)})
+    app.logger.debug(f'Received request: `{request.endpoint}`')
+    d = get_schema()  # Keep `status` and `error` fields blank since this is a config dump
+    try:
+        data = {
+            'redis_host': os.getenv('REDIS_HOST', 'localhost'),
+            'environment': str(dict(os.environ)),
+            'redis_client': str(redis_handler.redis_client)
+        }
+        d.update(data)
+    except Exception as e:
+        d.update(error=str(e))
     return jsonify(d)
 
 ### Messages
@@ -132,149 +119,86 @@ def get_timestamp(input) -> int:
         app.logger.warning(f'Invalid timestamp input \'{input}\'. Defaulting to current timestamp')
     return int(time.time())
 
-# TODO: Move this to redis_handler
-def get_query(this_request):
-    required_args = ['bot_id', 'state']
+def validate(input, required_keys):
+    if type(required_keys) is not list:
+        raise Exception(f'Ivalid argument - `required_keys` must be passed in as list, but got {type(required_keys)}')
+    if type(input) is not dict:
+        raise Exception(f'Ivalid argument - `input` must be passed in as dict, but got {type(input)}')
+    
+    missing_keys = []
+    for k in required_keys:
+        if k not in input.keys():
+            missing_keys.append(k)
+    if missing_keys:
+        raise Exception('Invalid message - missing required keys: {}'.format(', '.join(missing_keys)))
 
-    query = dict().fromkeys(required_args)
-    error = ''
-
-    try:
-        app.logger.debug(f'Received request: {this_request.endpoint} with args: {dict(this_request.args)}')
-    except Exception as e:
-        error = f'Unexpected error: invalid flask request object'
-        app.logger.error(error)
-        return False, error, {}, {}
-
-    for arg in query.keys():
-        try:
-            query.update({arg: this_request.args.get(arg)})
-        except Exception as e:
-            error = f'Invalid request - missing required argument `{arg}` - {str(e)}'
-            app.logger.error(error)
-            return False, error, {}, {} 
-
-    return True, error, query
-
-
-@app.route(f'{API_PREFIX_MESSAGES}/latest', methods=['GET'])
-def get_latest_message():
-    """Get latest message"""
-    result, error, query = get_query(request)
-    if not result:
-        return jsonify(get_schema(status='fail', error=error)), 400
-
-    target = 'latest message from bot_id={} with state={}'.format(query['bot_id'], query['state'])
-    try:
-        app.logger.debug(f'Getting {target}')
-
-        message = redis_handler.get_latest_message(query)
-        if not message:
-            raise Exception('No messages found matching query')
-        app.logger.info(f'Got {target}: {message}')
-
-        d = get_schema(status='success')
-        d.update({'data': str(message)})  # TODO: parse message into json format with fields `message` + required_args
-        return jsonify(d)
-
-    except Exception as e:
-        error = f'Failed to get {target} - {e.args[0]}'
-        app.logger.error(error)
-        return jsonify(get_schema(status='fail', error=error)), 500
-
-
-@app.route(API_PREFIX_MESSAGES, methods=['GET'])
-def get_messages():
-    result, error, query = get_query(request)
-    if not result:
-        return jsonify(get_schema(status='fail', error=error)), 400
-
-    # Parse limit from argument
-    try:
-        limit_str = request.args.get('limit')
-        if not limit_str:
-            limit = redis_handler.MAX_MESSAGES
-            warning = f'Request is missing argument `limit`. Setting it to default value (max number of stored messages: {limit})'
-            app.logger.warning(warning)
-        else:
-            limit = int(limit_str)
-    except Exception as e:
-        limit = redis_handler.MAX_MESSAGES
-        warning = f'Failed to parse limit from request into valid int. Setting it to default value (max number of stored messages: {limit}) - {e.args[0]}'
-        app.logger.warning(warning)
-
-    target = 'messages from bot_id={} with state={}'.format(query['bot_id'], query['state'])
-    try:
-        app.logger.debug(f'Getting up to {limit} {target}')
-        messages = redis_handler.get_messages(query, limit=limit)
-        app.logger.info(f'Found {len(messages)} {target}')
-        d = get_schema(status='success')
-        d.update({'data': messages})
-        return jsonify(d)
-
-    except Exception as e:
-        error = f'Failed to get {target} - {e.args[0]}'
-        app.logger.error(error)
-        return jsonify(get_schema(status='fail', error=error)), 500
-
+def create_text_message(text: str, source_id: str, tags: list[str] = None) -> Message:
+    """Create a text message with proper structure"""
+    message_id = f'{int(time.time()*1000)}'  # TODO: Set message id as unique hash
+    return {
+        'id': message_id,
+        'content': {
+            'text': text,
+            'language': 'en'  # Could be detected automatically
+        },
+        'metadata': {
+            'created_at': datetime.now().isoformat(),
+            'source_id': source_id,
+            'msg_type': MessageType.TEXT.value,
+            'thread_id': None,
+            'tags': tags or [],
+            'size_bytes': len(text.encode('utf-8')),
+            'content_hash': hashlib.sha256(text.encode('utf-8')).hexdigest()
+        }
+    }
 
 @app.route(API_PREFIX_MESSAGES, methods=['POST'])  # TODO: Add following decorators later: @require_api_key @limiter.limit("30 per minute")
-def store_message():
+async def store_message():
     app.logger.debug('Storing message...')
-    def validate(input, required_keys) -> str:
-        if type(required_keys) is not list:
-            return False, f'Ivalid argument - `required_keys` must be passed in as list, but got {type(required_keys)}'
-        if type(input) is not dict:
-            return False, f'Ivalid argument - `input` must be passed in as dict, but got {type(input)}'
-        
-        missing_keys = []
-        for k in required_keys:
-            if k not in input.keys():
-                missing_keys.append(k)
-        if missing_keys:
-            return False, 'Invalid message - missing required keys: {}'.format(', '.join(missing_keys))
-
-        return True, ''
 
     try:
         data = request.get_json()
+        validate(data, ['bot_id', 'message'])
     except Exception as e:
-        error = f"Failed to parse POST request data into json - {str(e)}"
-        app.logger.error(error)
-        return jsonify(get_schema(status='fail', error=error)), 400
-
-    try:
-        # Validate data structure
-        result, error = validate(data, ['bot_id', 'message'])
-        if not result:
-            raise Exception(error)
-
-        # Validate message structure
-        result, error = validate(data['message'], ['state', 'text', 'timestamp'])
-        if not result:
-            raise Exception(error)
-
-    except Exception as e:
-        error = f"Failed to validate input message - {str(e)}"
+        error = f'Failed to parse POST request data into json - {str(e)}'
         app.logger.error(error)
         return jsonify(get_schema(status='fail', error=error)), 400
 
     # Store message
     try:
-        target = 'message from bot_id={} with state={}'.format(data['bot_id'], data['message']['state'])
-        app.logger.debug(f'Processing request to store {target}')
-        message_id = redis_handler.store_message(
-            bot_id=data['bot_id'],
-            state=data['message']['state'],
-            text=data['message']['text'],
-            timestamp=get_timestamp(data['message']['timestamp'])
+        # TODO: Use Telegram adapter here
+        source_id = f"telegram_bot_{data['bot_id']}"
+        tags = [data['message']['state']]  # TODO: swap for data.get('tags', [])
+        text = data['message']['text']
+        message = create_text_message(text, source_id, tags)
+
+        target = 'message from bot_id={}. content={}, metadata={}'.format(data['bot_id'], text, message['metadata'])
+        app.logger.structured(
+            logging.INFO,
+            f'Received {target}',
+            source_id=message['metadata']['source_id'],
+            content_type=message['metadata']['msg_type'],
+            size=message['metadata']['size_bytes']
         )
 
-        app.logger.info(f'Stored {target} as {message_id=}')
-        d = get_schema(status='success')
-        d.update({'data': {'message_id': message_id}})
-        return jsonify(d), 201
+        # TODO: Refactor redis_handler to that new design with CRUD separation, etc.
+        success = await redis_handler.store_message(message)
+
+        if success:
+            app.logger.info(f'Stored {target}')
+            d = get_schema(status='success')
+            d.update({'data': {'message': message}})
+            return jsonify(d), 201
+        else:
+            d = get_schema(status='fail', error=f'Failed to store {target}')
+            return jsonify(d), 500
 
     except Exception as e:
         error = f"Failed to store message due to internal server error - {str(e)}"
+        app.logger.structured(
+            logging.ERROR,
+            f'{error}',
+            error=str(e),
+            error_type=type(e).__name__
+        )
         return jsonify(get_schema(status='fail', error=error)), 500
